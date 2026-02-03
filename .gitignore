@@ -38,3 +38,17 @@ _ide_helper.php
 .idea/ 
 composer.phar 
 php 
+# Development files 
+DEBUG_TIMETABLE.md 
+FOUNDATION_CHECK_REPORT.md 
+FOUNDATION_CHECK_STATUS.md 
+PROGRESS_UPDATE.md 
+QUICK_TEST_START.md 
+REMAINING_WORK.md 
+TESTING_EXECUTION.md 
+TESTING_GUIDE.md 
+TIMETABLE_GUIDE.md 
+_ide_helper.php 
+.idea/ 
+composer.phar 
+php 
