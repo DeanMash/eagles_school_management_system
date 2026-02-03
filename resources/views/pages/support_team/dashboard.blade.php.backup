@@ -1,0 +1,459 @@
+@extends('layouts.master')
+@section('page_title', 'My Dashboard')
+@section('content')
+
+@php
+    // Ensure variables exist with safe defaults
+    $users = $users ?? collect();
+    $todayEvents = $todayEvents ?? collect();
+@endphp
+
+    @if(Qs::userIsTeamSA())
+       <div class="row">
+           <div class="col-sm-6 col-xl-3">
+               <div class="card card-body bg-blue-400 has-bg-image">
+                   <div class="media">
+                       <div class="media-body">
+                           <h3 class="mb-0">{{ isset($users) ? $users->where('user_type', 'student')->count() : 0 }}</h3>
+                           <span class="text-uppercase font-size-xs font-weight-bold">Total Students</span>
+                       </div>
+
+                       <div class="ml-3 align-self-center">
+                           <i class="icon-users4 icon-3x opacity-75"></i>
+                       </div>
+                   </div>
+               </div>
+           </div>
+
+           <div class="col-sm-6 col-xl-3">
+               <div class="card card-body bg-danger-400 has-bg-image">
+                   <div class="media">
+                       <div class="media-body">
+                           <h3 class="mb-0">{{ isset($users) ? $users->where('user_type', 'teacher')->count() : 0 }}</h3>
+                           <span class="text-uppercase font-size-xs">Total Teachers</span>
+                       </div>
+
+                       <div class="ml-3 align-self-center">
+                           <i class="icon-users2 icon-3x opacity-75"></i>
+                       </div>
+                   </div>
+               </div>
+           </div>
+
+           <div class="col-sm-6 col-xl-3">
+               <div class="card card-body bg-success-400 has-bg-image">
+                   <div class="media">
+                       <div class="mr-3 align-self-center">
+                           <i class="icon-pointer icon-3x opacity-75"></i>
+                       </div>
+
+                       <div class="media-body text-right">
+                           <h3 class="mb-0">{{ isset($users) ? $users->where('user_type', 'admin')->count() : 0 }}</h3>
+                           <span class="text-uppercase font-size-xs">Total Administrators</span>
+                       </div>
+                   </div>
+               </div>
+           </div>
+
+           <div class="col-sm-6 col-xl-3">
+               <div class="card card-body bg-indigo-400 has-bg-image">
+                   <div class="media">
+                       <div class="mr-3 align-self-center">
+                           <i class="icon-user icon-3x opacity-75"></i>
+                       </div>
+
+                       <div class="media-body text-right">
+                           <h3 class="mb-0">{{ isset($users) ? $users->where('user_type', 'parent')->count() : 0 }}</h3>
+                           <span class="text-uppercase font-size-xs">Total Parents</span>
+                       </div>
+                   </div>
+               </div>
+           </div>
+       </div>
+    @endif
+
+    {{--Events Calendar Begins--}}
+    <div class="card">
+        <div class="card-header header-elements-inline">
+            <h5 class="card-title">School Events Calendar</h5>
+            {!! Qs::getPanelOptions() !!}
+        </div>
+
+        <div class="card calendar-card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-calendar-alt"></i> School Calendar
+                </h5>
+                <div class="card-options">
+                    <span class="badge bg-primary">Events: {{ isset($todayEvents) ? $todayEvents->count() : 0 }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Date selector -->
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <input type="date" id="eventDatePicker" class="form-control form-control-sm" 
+                               value="{{ date('Y-m-d') }}">
+                    </div>
+                    <div class="col-md-4">
+                        <button id="showTodayBtn" class="btn btn-sm btn-primary w-100">Today</button>
+                    </div>
+                </div>
+                
+                <!-- Events display for selected date -->
+                <div id="dateEventsDisplay" class="mb-3">
+                    <div class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Loading events...</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Calendar widget -->
+                <div id="miniCalendar" class="fullcalendar-basic"></div>
+                
+                <!-- Quick add event (for admin) -->
+                @if(auth()->check() && auth()->user()->user_type == 'admin')
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-outline-primary w-100" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#addEventModal">
+                        <i class="fas fa-plus"></i> Add Event
+                    </button>
+                </div>
+                @endif
+            </div>
+        </div>
+
+        <!-- Add Event Modal (for admin) -->
+        @if(auth()->check() && auth()->user()->user_type == 'admin')
+        <div class="modal fade" id="addEventModal" tabindex="-1">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h6 class="modal-title">Add Quick Event</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="quickEventForm" action="{{ route('events.quick-add') }}" method="POST">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label>Title</label>
+                                <input type="text" name="title" class="form-control form-control-sm" required>
+                            </div>
+                            <div class="mb-3">
+                                <label>Date</label>
+                                <input type="date" name="event_date" class="form-control form-control-sm" required>
+                            </div>
+                            <div class="mb-3">
+                                <label>Type</label>
+                                <select name="event_type" class="form-control form-control-sm">
+                                    <option value="academic">Academic</option>
+                                    <option value="exam">Exam</option>
+                                    <option value="sports">Sports</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-sm btn-primary">Add</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        @endif
+    </div>
+    {{--Events Calendar Ends--}}
+
+@endsection
+
+@push('css')
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+<style>
+.calendar-card {
+    height: 450px;
+    overflow: hidden;
+}
+#miniCalendar {
+    height: 300px;
+}
+.fc .fc-toolbar {
+    padding: 5px;
+    margin-bottom: 5px;
+}
+.fc .fc-toolbar-title {
+    font-size: 1em;
+}
+.fc .fc-button {
+    padding: 2px 6px;
+    font-size: 0.8em;
+}
+.fc-daygrid-event {
+    font-size: 0.8em;
+    padding: 1px 3px;
+    margin: 1px 0;
+}
+.fc-event {
+    cursor: pointer;
+}
+.event-highlight {
+    background-color: #e7f1ff;
+    border-left: 3px solid #007bff;
+}
+</style>
+@endpush
+
+@push('js')
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+<script>
+$(document).ready(function() {
+    // Initialize mini calendar
+    initMiniCalendar();
+    
+    // Load today's events
+    loadEventsForDate('{{ date("Y-m-d") }}');
+    
+    // Date picker change
+    $('#eventDatePicker').change(function() {
+        var selectedDate = $(this).val();
+        loadEventsForDate(selectedDate);
+        
+        // Update mini calendar to show selected date
+        if (calendar) {
+            calendar.gotoDate(selectedDate);
+        }
+    });
+    
+    // Today button
+    $('#showTodayBtn').click(function() {
+        var today = new Date().toISOString().split('T')[0];
+        $('#eventDatePicker').val(today);
+        loadEventsForDate(today);
+        if (calendar) {
+            calendar.today();
+        }
+    });
+    
+        // Quick event form
+    $('#quickEventForm').submit(function(e) {
+        e.preventDefault();
+        
+        // Show loading state
+        $(this).find('button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Adding...');
+        
+        $.ajax({
+            url: $(this).attr('action'),
+            method: 'POST',
+            data: $(this).serialize(),
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                $('#addEventModal').modal('hide');
+                $('#quickEventForm')[0].reset();
+                $('#quickEventForm').find('button[type="submit"]').prop('disabled', false).html('Add');
+                
+                // Show success message
+                if (typeof toastr !== 'undefined') {
+                    toastr.success('Event added successfully!');
+                } else {
+                    alert('Event added successfully!');
+                }
+                
+                // Reload events and calendar
+                var currentDate = $('#eventDatePicker').val();
+                loadEventsForDate(currentDate);
+                if (calendar) {
+                    calendar.refetchEvents();
+                }
+            },
+            error: function(xhr) {
+                $('#quickEventForm').find('button[type="submit"]').prop('disabled', false).html('Add');
+                
+                var errors = xhr.responseJSON.errors;
+                if (errors) {
+                    var errorMsg = '';
+                    $.each(errors, function(key, value) {
+                        errorMsg += value[0] + '\n';
+                    });
+                    alert('Error: ' + errorMsg);
+                } else {
+                    alert('Failed to add event. Please check console for details.');
+                }
+                console.error('Event add error:', xhr.responseText);
+            }
+        });
+    });
+
+var calendar;
+
+function initMiniCalendar() {
+    var calendarEl = document.getElementById('miniCalendar');
+    
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'title',
+            center: '',
+            right: 'prev,next'
+        },
+        height: 280,
+        aspectRatio: 1.2,
+        events: {
+            url: '{{ route("events.get-by-range") }}',
+            method: 'GET',
+            extraParams: function() {
+                return {
+                    start: calendar.view.activeStart.toISOString().split('T')[0],
+                    end: calendar.view.activeEnd.toISOString().split('T')[0]
+                };
+            }
+        },
+        eventClick: function(info) {
+            // When user clicks an event, show details
+            showEventDetails(info.event);
+        },
+        dateClick: function(info) {
+            // When user clicks a date, load events for that date
+            $('#eventDatePicker').val(info.dateStr);
+            loadEventsForDate(info.dateStr);
+        },
+        eventDidMount: function(info) {
+            // Style events based on type
+            var color = getEventColor(info.event.extendedProps.event_type);
+            info.el.style.backgroundColor = color;
+            info.el.style.borderColor = color;
+            info.el.style.fontSize = '0.7em';
+        }
+    });
+    
+    calendar.render();
+}
+
+function loadEventsForDate(date) {
+    $('#dateEventsDisplay').html(`
+        <div class="text-center py-2">
+            <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    `);
+    
+    $.ajax({
+        url: '{{ route("events.get-by-date") }}',
+        method: 'GET',
+        data: { date: date },
+        success: function(response) {
+            if (response.length > 0) {
+                var html = '<div class="list-group list-group-flush">';
+                response.forEach(function(event) {
+                    var badgeClass = getBadgeClass(event.event_type);
+                    html += `
+                    <div class="list-group-item py-2 event-item" 
+                         data-event-id="${event.id}" 
+                         style="cursor: pointer; border-left: 3px solid ${getEventColor(event.event_type)}">
+                        <div class="d-flex w-100 justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">${event.title}</h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock"></i> ${event.start_time || 'All Day'}
+                                    ${event.venue ? '<i class="fas fa-map-marker-alt ms-2"></i> ' + event.venue : ''}
+                                </small>
+                            </div>
+                            <span class="badge ${badgeClass}">${event.event_type}</span>
+                        </div>
+                        ${event.description ? '<small class="text-muted">' + event.description + '</small>' : ''}
+                    </div>
+                    `;
+                });
+                html += '</div>';
+            } else {
+                var html = `
+                <div class="text-center py-3">
+                    <i class="fas fa-calendar-times text-muted fa-2x mb-2"></i>
+                    <p class="text-muted mb-0">No events scheduled</p>
+                </div>
+                `;
+            }
+            $('#dateEventsDisplay').html(html);
+            
+            // Add click handlers to event items
+            $('.event-item').click(function() {
+                var eventId = $(this).data('event-id');
+                showEventDetailsById(eventId);
+            });
+        }
+    });
+}
+
+function showEventDetails(event) {
+    // Simple modal for event details
+    var modalHtml = `
+    <div class="modal fade" id="eventDetailModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">${event.title}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Date:</strong> ${event.start.toLocaleDateString()}</p>
+                    ${event.extendedProps.description ? '<p>' + event.extendedProps.description + '</p>' : ''}
+                    ${event.extendedProps.venue ? '<p><i class="fas fa-map-marker-alt"></i> ' + event.extendedProps.venue + '</p>' : ''}
+                    <p><span class="badge ${getBadgeClass(event.extendedProps.event_type)}">${event.extendedProps.event_type}</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+    
+    // Remove existing modal if any
+    $('#eventDetailModal').remove();
+    $('body').append(modalHtml);
+    var modal = new bootstrap.Modal(document.getElementById('eventDetailModal'));
+    modal.show();
+}
+
+function showEventDetailsById(eventId) {
+    $.ajax({
+        url: '/events/' + eventId,
+        method: 'GET',
+        success: function(event) {
+            showEventDetails({
+                title: event.title,
+                start: new Date(event.event_date),
+                extendedProps: {
+                    description: event.description,
+                    venue: event.venue,
+                    event_type: event.event_type
+                }
+            });
+        }
+    });
+}
+
+function getBadgeClass(eventType) {
+    var classes = {
+        'academic': 'bg-primary',
+        'exam': 'bg-danger',
+        'sports': 'bg-success',
+        'cultural': 'bg-warning',
+        'holiday': 'bg-info',
+        'meeting': 'bg-secondary'
+    };
+    return classes[eventType] || 'bg-dark';
+}
+
+function getEventColor(eventType) {
+    var colors = {
+        'academic': '#007bff',
+        'exam': '#dc3545',
+        'sports': '#28a745',
+        'cultural': '#ffc107',
+        'holiday': '#17a2b8',
+        'meeting': '#6c757d'
+    };
+    return colors[eventType] || '#6c757d';
+}
+</script>
+@endpush
