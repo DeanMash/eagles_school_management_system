@@ -103,32 +103,32 @@ Route::group(['prefix' => 'users', 'as' => 'users.', 'middleware' => ['auth']], 
 Route::middleware(['auth'])->group(function () {
     Route::prefix('timetables')->as('tt.')->group(function () {
         Route::get('/', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'index'])->name('index');
-        Route::post('/', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'store'])->name('store');
-        Route::put('/{id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'update'])->name('update');
-        Route::delete('/{id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'delete'])->name('delete');
+        Route::post('/', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'store'])->middleware('teamSA')->name('store');
+        Route::put('/{id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'update'])->middleware('teamSA')->name('update');
+        Route::delete('/{id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'delete'])->middleware('teamSA')->name('delete');
         
         // Time Slots
-        Route::post('/time-slots', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'store_time_slot'])->name('time_slots.store');
-        Route::get('/time-slots/{id}/edit', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'edit_time_slot'])->name('time_slots.edit');
-        Route::put('/time-slots/{id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'update_time_slot'])->name('time_slots.update');
-        Route::delete('/time-slots/{id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'delete_time_slot'])->name('time_slots.delete');
-        Route::post('/use-time-slots/{ttr_id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'use_time_slot'])->name('time_slots.use');
-        Route::post('/bulk-create-time-slots/{ttr_id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'bulk_create_time_slots'])->name('time_slots.bulk_create');
+        Route::post('/time-slots', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'store_time_slot'])->middleware('teamSA')->name('time_slots.store');
+        Route::get('/time-slots/{id}/edit', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'edit_time_slot'])->middleware('teamSA')->name('time_slots.edit');
+        Route::put('/time-slots/{id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'update_time_slot'])->middleware('teamSA')->name('time_slots.update');
+        Route::delete('/time-slots/{id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'delete_time_slot'])->middleware('super_admin')->name('time_slots.delete');
+        Route::post('/use-time-slots/{ttr_id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'use_time_slot'])->middleware('teamSA')->name('time_slots.use');
+        Route::post('/bulk-create-time-slots/{ttr_id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'bulk_create_time_slots'])->middleware('teamSA')->name('time_slots.bulk_create');
     });
     
     Route::prefix('timetable-records')->as('ttr.')->group(function () {
         Route::get('/', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'index'])->name('index');
-        Route::post('/', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'store_record'])->name('store');
+        Route::post('/', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'store_record'])->middleware('teamSA')->name('store');
         // Use {ttr_id} so global Route::bind('id') doesn't decode as hash (plain numeric ID in URL)
-        Route::get('/{ttr_id}/manage', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'manage'])->name('manage');
-        Route::get('/{ttr_id}/grid', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'grid_view'])->name('grid');
-        Route::post('/{ttr_id}/bulk-create-time-slots', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'bulk_create_time_slots'])->name('bulk_create_time_slots');
-        Route::post('/{ttr_id}/bulk-store-subjects', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'bulk_store_subjects'])->name('bulk_store_subjects');
-        Route::post('/{ttr_id}/store-weekly-slots', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'store_weekly_slots'])->name('store_weekly_slots');
+        Route::get('/{ttr_id}/manage', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'manage'])->middleware('teamSA')->name('manage');
+        Route::get('/{ttr_id}/grid', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'grid_view'])->middleware('teamSA')->name('grid');
+        Route::post('/{ttr_id}/bulk-create-time-slots', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'bulk_create_time_slots'])->middleware('teamSA')->name('bulk_create_time_slots');
+        Route::post('/{ttr_id}/bulk-store-subjects', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'bulk_store_subjects'])->middleware('teamSA')->name('bulk_store_subjects');
+        Route::post('/{ttr_id}/store-weekly-slots', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'store_weekly_slots'])->middleware('teamSA')->name('store_weekly_slots');
         Route::get('/{ttr_id}/print', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'print_record'])->name('print');
-        Route::get('/{ttr_id}/edit', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'edit_record'])->name('edit');
-        Route::put('/{ttr_id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'update_record'])->name('update');
-        Route::delete('/{ttr_id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'delete_record'])->name('destroy');
+        Route::get('/{ttr_id}/edit', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'edit_record'])->middleware('teamSA')->name('edit');
+        Route::put('/{ttr_id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'update_record'])->middleware('teamSA')->name('update');
+        Route::delete('/{ttr_id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'delete_record'])->middleware('super_admin')->name('destroy');
         Route::get('/{ttr_id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'show_record'])->name('show');
     });
 });
@@ -237,20 +237,22 @@ Route::group(['prefix' => 'grades', 'as' => 'grades.', 'middleware' => ['auth']]
 
 // Marks Management Routes
 Route::group(['prefix' => 'marks', 'as' => 'marks.', 'middleware' => ['auth']], function () {
-    Route::get('/', [App\Http\Controllers\SupportTeam\MarkController::class, 'index'])->name('index');
-    Route::post('/selector', [App\Http\Controllers\SupportTeam\MarkController::class, 'selector'])->name('selector');
-    Route::get('/bulk/{class_id?}/{section_id?}', [App\Http\Controllers\SupportTeam\MarkController::class, 'bulk'])->name('bulk');
-    Route::post('/bulk-select', [App\Http\Controllers\SupportTeam\MarkController::class, 'bulk_select'])->name('bulk_select');
-    Route::get('/tabulation/{exam_id?}/{class_id?}/{section_id?}', [App\Http\Controllers\SupportTeam\MarkController::class, 'tabulation'])->name('tabulation');
-    Route::post('/tabulation-select', [App\Http\Controllers\SupportTeam\MarkController::class, 'tabulation_select'])->name('tabulation_select');
-    Route::get('/batch-fix', [App\Http\Controllers\SupportTeam\MarkController::class, 'batch_fix'])->name('batch_fix');
-    Route::post('/batch-update', [App\Http\Controllers\SupportTeam\MarkController::class, 'batch_update'])->name('batch_update');
-    Route::get('/manage/{exam_id}/{class_id}/{section_id}/{subject_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'manage'])->name('manage');
-    Route::post('/update/{exam_id}/{class_id}/{section_id}/{subject_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'update'])->name('update');
-    Route::get('/{student_id}/{year}', [App\Http\Controllers\SupportTeam\MarkController::class, 'show'])->name('show');
+    Route::middleware('teamSAT')->group(function () {
+        Route::get('/', [App\Http\Controllers\SupportTeam\MarkController::class, 'index'])->name('index');
+        Route::post('/selector', [App\Http\Controllers\SupportTeam\MarkController::class, 'selector'])->name('selector');
+        Route::get('/bulk/{class_id?}/{section_id?}', [App\Http\Controllers\SupportTeam\MarkController::class, 'bulk'])->name('bulk');
+        Route::post('/bulk-select', [App\Http\Controllers\SupportTeam\MarkController::class, 'bulk_select'])->name('bulk_select');
+        Route::get('/tabulation/{exam_id?}/{class_id?}/{section_id?}', [App\Http\Controllers\SupportTeam\MarkController::class, 'tabulation'])->name('tabulation');
+        Route::post('/tabulation-select', [App\Http\Controllers\SupportTeam\MarkController::class, 'tabulation_select'])->name('tabulation_select');
+        Route::get('/batch-fix', [App\Http\Controllers\SupportTeam\MarkController::class, 'batch_fix'])->name('batch_fix');
+        Route::post('/batch-update', [App\Http\Controllers\SupportTeam\MarkController::class, 'batch_update'])->name('batch_update');
+        Route::get('/manage/{exam_id}/{class_id}/{section_id}/{subject_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'manage'])->name('manage');
+        Route::post('/update/{exam_id}/{class_id}/{section_id}/{subject_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'update'])->name('update');
+    });
     Route::get('/year-selector/{student_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'year_selector'])->name('year_selector');
     Route::post('/year-selected/{student_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'year_selected'])->name('year_selected');
     Route::get('/print/{student_id}/{exam_id}/{year}', [App\Http\Controllers\SupportTeam\MarkController::class, 'print_view'])->name('print_view');
+    Route::get('/{student_id}/{year}', [App\Http\Controllers\SupportTeam\MarkController::class, 'show'])->name('show');
 });
 
 // Book Routes
