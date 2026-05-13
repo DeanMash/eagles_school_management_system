@@ -493,7 +493,7 @@
         // Reset to default password
         function resetToDefault(userId) {
             if (confirm('Reset password to "student"? This will log the student out of all devices.')) {
-                window.location.href = "{{ route('students.reset_pass', '') }}/" + userId;
+                window.location.href = "{{ url('/students') }}/" + userId + "/reset-password";
             }
         }
 
@@ -501,7 +501,7 @@
         function resetToCustom(userId) {
             if (confirm('Reset password to "Eagles@2024"? This will log the student out of all devices.')) {
                 $.ajax({
-                    url: '{{ route("students.reset.password.custom", "") }}/' + userId,
+                    url: "{{ url('/students') }}/" + userId + "/reset-password/custom",
                     method: 'POST',
                     data: {
                         _token: '{{ csrf_token() }}'

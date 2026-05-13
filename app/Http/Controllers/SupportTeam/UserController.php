@@ -198,6 +198,12 @@ class UserController extends Controller
 
     public function reset_pass($id)
     {
+        $id = Qs::decodeHash($id);
+
+        if(!$id){
+            return back()->with('flash_danger', __('msg.rnf'));
+        }
+
         // Redirect if Making Changes to Head of Super Admins
         if(Qs::headSA($id)){
             return back()->with('flash_danger', __('msg.denied'));

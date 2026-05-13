@@ -65,12 +65,7 @@ class HomeController extends Controller
             return $this->redirectToDashboard();
         }
         
-        // If not logged in, show landing page or login
-        $users = \App\Models\User::all();
-        $todayEvents = Event::today()->public()->get();
-        $upcomingEvents = Event::upcoming()->public()->limit(5)->get();
-        
-        return view('support.dashboard', compact('users', 'todayEvents', 'upcomingEvents'));
+        return redirect()->route('login');
     }
 
     public function privacy_policy()
