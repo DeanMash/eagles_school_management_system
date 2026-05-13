@@ -102,7 +102,7 @@ class CriticalRouteRegressionTest extends TestCase
 
     private function routeMiddleware(string $routeName): array
     {
-        return $this->route($routeName)->gatherMiddleware();
+        return $this->route($routeName)->middleware();
     }
 
     private function routeParameterNames(string $routeName): array
