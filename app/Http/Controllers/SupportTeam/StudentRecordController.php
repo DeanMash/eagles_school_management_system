@@ -232,12 +232,40 @@ class StudentRecordController extends Controller
 
     public function not_graduated($sr_id)
     {
+        $sr_id = Qs::decodeHash($sr_id);
+        if(!$sr_id){return Qs::goWithDanger();}
+
         $d['grad'] = 0;
         $d['grad_date'] = NULL;
         $d['session'] = Qs::getSetting('current_session');
         $this->student->updateRecord($sr_id, $d);
 
         return back()->with('flash_success', __('msg.update_ok'));
+    }
+
+    public function update_password(Request $req, $st_id)
+    {
+        $st_id = Qs::decodeHash($st_id);
+        if(!$st_id){return response()->json(['message' => __('msg.rnf')], 404);}
+
+        $this->validate($req, [
+            'new_password' => 'required|string|min:6|confirmed',
+        ], [], ['new_password' => 'New Password']);
+
+        $this->user->update($st_id, ['password' => Hash::make($req->new_password)]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function reset_password_custom($st_id)
+    {
+        $st_id = Qs::decodeHash($st_id);
+        if(!$st_id){return response()->json(['message' => __('msg.rnf')], 404);}
+
+        $defaultPassword = 'Eagles@2024';
+        $this->user->update($st_id, ['password' => Hash::make($defaultPassword)]);
+
+        return response()->json(['success' => true, 'default_password' => $defaultPassword]);
     }
 
     public function show($sr_id)

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SupportTeam\StudentRecordController;
+use App\Http\Controllers\SupportTeam\PromotionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\EventController;
@@ -32,10 +33,10 @@ Route::get('/about', function() {
 Auth::routes(['register' => false]);
 
 // Home route (default redirect after login)
-Route::get('/home', [HomeController::class, 'index'])->name('home');
+Route::get('/home', [HomeController::class, 'index'])->middleware('auth')->name('home');
 
 // Dashboard Routes
-Route::get('/dashboard', [HomeController::class, 'dashboard'])->name('dashboard');
+Route::get('/dashboard', [HomeController::class, 'dashboard'])->middleware('auth')->name('dashboard');
 
 // Payment Routes
 Route::group(['prefix' => 'payments', 'as' => 'payments.', 'middleware' => ['auth']], function () {
@@ -61,23 +62,23 @@ Route::group(['prefix' => 'payments', 'as' => 'payments.', 'middleware' => ['aut
 Route::prefix('events')->name('events.')->middleware(['auth'])->group(function () {
     Route::get('/get-by-range', [EventController::class, 'getByRange'])->name('get-by-range');
     Route::get('/get-by-date', [EventController::class, 'getByDate'])->name('get-by-date');
+    Route::get('/today', [EventController::class, 'getTodayEvents'])->name('today');
+    Route::get('/upcoming', [EventController::class, 'getUpcomingEvents'])->name('upcoming');
+    Route::get('/stats', [EventController::class, 'getEventStats'])->name('stats');
     Route::post('/quick-add', [EventController::class, 'quickAdd'])->name('quick-add');
     Route::get('/', [EventController::class, 'index'])->name('index');
     Route::get('/create', [EventController::class, 'create'])->name('create');
     Route::post('/', [EventController::class, 'store'])->name('store');
-    Route::get('/{id}', [EventController::class, 'show'])->name('show');
-    Route::get('/{id}/edit', [EventController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [EventController::class, 'update'])->name('update');
-    Route::delete('/{id}', [EventController::class, 'destroy'])->name('destroy');
-    Route::get('/today', [EventController::class, 'getTodayEvents'])->name('today');
-    Route::get('/upcoming', [EventController::class, 'getUpcomingEvents'])->name('upcoming');
-    Route::post('/{id}/toggle-visibility', [EventController::class, 'toggleVisibility'])->name('toggle-visibility');
-    Route::get('/stats', [EventController::class, 'getEventStats'])->name('stats');
+    Route::get('/{event}', [EventController::class, 'show'])->name('show');
+    Route::get('/{event}/edit', [EventController::class, 'edit'])->name('edit');
+    Route::put('/{event}', [EventController::class, 'update'])->name('update');
+    Route::delete('/{event}', [EventController::class, 'destroy'])->name('destroy');
+    Route::post('/{event}/toggle-visibility', [EventController::class, 'toggleVisibility'])->name('toggle-visibility');
 });
 
 // User Profile Routes
 Route::middleware(['auth'])->group(function () {
-    Route::get('/user/{id}', [UserController::class, 'show'])->name('user.view');
+    Route::get('/user/{user}', [UserController::class, 'show'])->name('user.view');
     Route::get('/profile', [UserController::class, 'profile'])->name('profile');
     Route::get('/profile/edit', [UserController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/update', [UserController::class, 'update'])->name('profile.update');
@@ -92,11 +93,11 @@ Route::group(['prefix' => 'users', 'as' => 'users.', 'middleware' => ['auth']], 
     Route::get('/', [App\Http\Controllers\SupportTeam\UserController::class, 'index'])->name('index');
     Route::post('/', [App\Http\Controllers\SupportTeam\UserController::class, 'store'])->name('store');
     Route::get('/get-districts', [App\Http\Controllers\SupportTeam\UserController::class, 'getDistricts'])->name('get_districts');
-    Route::get('/{id}', [App\Http\Controllers\SupportTeam\UserController::class, 'show'])->name('show');
-    Route::get('/{id}/edit', [App\Http\Controllers\SupportTeam\UserController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [App\Http\Controllers\SupportTeam\UserController::class, 'update'])->name('update');
-    Route::delete('/{id}', [App\Http\Controllers\SupportTeam\UserController::class, 'destroy'])->name('destroy');
-    Route::get('/{id}/reset-password', [App\Http\Controllers\SupportTeam\UserController::class, 'reset_pass'])->name('reset_password');
+    Route::get('/{user}', [App\Http\Controllers\SupportTeam\UserController::class, 'show'])->name('show');
+    Route::get('/{user}/edit', [App\Http\Controllers\SupportTeam\UserController::class, 'edit'])->name('edit');
+    Route::put('/{user}', [App\Http\Controllers\SupportTeam\UserController::class, 'update'])->name('update');
+    Route::delete('/{user}', [App\Http\Controllers\SupportTeam\UserController::class, 'destroy'])->name('destroy');
+    Route::get('/{user}/reset-password', [App\Http\Controllers\SupportTeam\UserController::class, 'reset_pass'])->name('reset_pass');
 });
 
 // Academic Routes - Timetables
@@ -139,25 +140,28 @@ Route::group(['prefix' => 'students', 'as' => 'students.', 'middleware' => ['aut
     Route::get('/list', [StudentRecordController::class, 'index'])->name('list');
     Route::get('/create', [StudentRecordController::class, 'create'])->name('create');
     Route::post('/', [StudentRecordController::class, 'store'])->name('store');
-    Route::get('/{id}', [StudentRecordController::class, 'show'])->name('show');
-    Route::get('/{id}/edit', [StudentRecordController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [StudentRecordController::class, 'update'])->name('update');
-    Route::delete('/{id}', [StudentRecordController::class, 'destroy'])->name('destroy');
-    Route::get('/{id}/reset-password', [StudentRecordController::class, 'reset_pass'])->name('reset_password');
     Route::get('/graduated/list', [StudentRecordController::class, 'graduated'])->name('graduated');
-    Route::get('/{id}/not-graduated', [StudentRecordController::class, 'not_graduated'])->name('not_graduated');
     Route::get('/class/{class_id}', [StudentRecordController::class, 'listByClass'])->name('list_by_class');
     
     // Promotion Routes
-    Route::get('/promotion', [StudentRecordController::class, 'promotion'])->name('promotion');
-    Route::post('/promotion', [StudentRecordController::class, 'promote'])->name('promote');
-    Route::get('/promotion/manage', [StudentRecordController::class, 'promotion_manage'])->name('promotion_manage');
-    Route::delete('/promotion/reset/{id}', [StudentRecordController::class, 'promotion_reset'])->name('promotion_reset');
-    Route::delete('/promotion/reset-all', [StudentRecordController::class, 'promotion_reset_all'])->name('promotion_reset_all');
+    Route::get('/promotion/manage', [PromotionController::class, 'manage'])->middleware('teamSA')->name('promotion_manage');
+    Route::delete('/promotion/reset-all', [PromotionController::class, 'reset_all'])->middleware('teamSA')->name('promotion_reset_all');
+    Route::delete('/promotion/reset/{promotion_id}', [PromotionController::class, 'reset'])->middleware('teamSA')->name('promotion_reset');
+    Route::post('/promotion/selector', [PromotionController::class, 'selector'])->middleware('teamSA')->name('promote_selector');
+    Route::post('/promotion/{fc}/{fs}/{tc}/{ts}', [PromotionController::class, 'promote'])->middleware('teamSA')->name('promote');
+    Route::get('/promotion/{fc?}/{fs?}/{tc?}/{ts?}', [PromotionController::class, 'promotion'])->middleware('teamSA')->name('promotion');
 
     // AJAX Routes
     Route::get('/get-sections/{class_id}', [StudentRecordController::class, 'getSections'])->name('get_sections');
     Route::get('/get-districts', [StudentRecordController::class, 'getDistricts'])->name('get_districts');
+    Route::put('/{sr_id}/not-graduated', [StudentRecordController::class, 'not_graduated'])->middleware('teamSA')->name('not_graduated');
+    Route::get('/{st_id}/reset-password', [StudentRecordController::class, 'reset_pass'])->middleware('teamSA')->name('reset_password');
+    Route::put('/{st_id}/password', [StudentRecordController::class, 'update_password'])->middleware('teamSA')->name('update.password');
+    Route::post('/{st_id}/reset-password/custom', [StudentRecordController::class, 'reset_password_custom'])->middleware('teamSA')->name('reset.password.custom');
+    Route::get('/{sr_id}', [StudentRecordController::class, 'show'])->name('show');
+    Route::get('/{sr_id}/edit', [StudentRecordController::class, 'edit'])->name('edit');
+    Route::put('/{sr_id}', [StudentRecordController::class, 'update'])->name('update');
+    Route::delete('/{st_id}', [StudentRecordController::class, 'destroy'])->name('destroy');
 });
 
 // Other Groups
@@ -237,20 +241,25 @@ Route::group(['prefix' => 'grades', 'as' => 'grades.', 'middleware' => ['auth']]
 
 // Marks Management Routes
 Route::group(['prefix' => 'marks', 'as' => 'marks.', 'middleware' => ['auth']], function () {
-    Route::get('/', [App\Http\Controllers\SupportTeam\MarkController::class, 'index'])->name('index');
-    Route::post('/selector', [App\Http\Controllers\SupportTeam\MarkController::class, 'selector'])->name('selector');
-    Route::get('/bulk/{class_id?}/{section_id?}', [App\Http\Controllers\SupportTeam\MarkController::class, 'bulk'])->name('bulk');
-    Route::post('/bulk-select', [App\Http\Controllers\SupportTeam\MarkController::class, 'bulk_select'])->name('bulk_select');
-    Route::get('/tabulation/{exam_id?}/{class_id?}/{section_id?}', [App\Http\Controllers\SupportTeam\MarkController::class, 'tabulation'])->name('tabulation');
-    Route::post('/tabulation-select', [App\Http\Controllers\SupportTeam\MarkController::class, 'tabulation_select'])->name('tabulation_select');
-    Route::get('/batch-fix', [App\Http\Controllers\SupportTeam\MarkController::class, 'batch_fix'])->name('batch_fix');
-    Route::post('/batch-update', [App\Http\Controllers\SupportTeam\MarkController::class, 'batch_update'])->name('batch_update');
-    Route::get('/manage/{exam_id}/{class_id}/{section_id}/{subject_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'manage'])->name('manage');
-    Route::post('/update/{exam_id}/{class_id}/{section_id}/{subject_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'update'])->name('update');
-    Route::get('/{student_id}/{year}', [App\Http\Controllers\SupportTeam\MarkController::class, 'show'])->name('show');
+    Route::middleware('teamSAT')->group(function () {
+        Route::get('/', [App\Http\Controllers\SupportTeam\MarkController::class, 'index'])->name('index');
+        Route::post('/selector', [App\Http\Controllers\SupportTeam\MarkController::class, 'selector'])->name('selector');
+        Route::get('/bulk/{class_id?}/{section_id?}', [App\Http\Controllers\SupportTeam\MarkController::class, 'bulk'])->name('bulk');
+        Route::post('/bulk-select', [App\Http\Controllers\SupportTeam\MarkController::class, 'bulk_select'])->name('bulk_select');
+        Route::get('/tabulation/print/{exam_id}/{class_id}/{section_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'print_tabulation'])->name('print_tabulation');
+        Route::get('/tabulation/{exam_id?}/{class_id?}/{section_id?}', [App\Http\Controllers\SupportTeam\MarkController::class, 'tabulation'])->name('tabulation');
+        Route::post('/tabulation-select', [App\Http\Controllers\SupportTeam\MarkController::class, 'tabulation_select'])->name('tabulation_select');
+        Route::get('/batch-fix', [App\Http\Controllers\SupportTeam\MarkController::class, 'batch_fix'])->name('batch_fix');
+        Route::post('/batch-update', [App\Http\Controllers\SupportTeam\MarkController::class, 'batch_update'])->name('batch_update');
+        Route::get('/manage/{exam_id}/{class_id}/{section_id}/{subject_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'manage'])->name('manage');
+        Route::post('/update/{exam_id}/{class_id}/{section_id}/{subject_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'update'])->name('update');
+        Route::put('/comment/{exr_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'comment_update'])->name('comment_update');
+        Route::put('/skills/{skill}/{exr_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'skills_update'])->name('skills_update');
+    });
     Route::get('/year-selector/{student_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'year_selector'])->name('year_selector');
-    Route::post('/year-selected/{student_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'year_selected'])->name('year_selected');
-    Route::get('/print/{student_id}/{exam_id}/{year}', [App\Http\Controllers\SupportTeam\MarkController::class, 'print_view'])->name('print_view');
+    Route::post('/year-selected/{student_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'year_selected'])->name('year_select');
+    Route::get('/print/{student_id}/{exam_id}/{year}', [App\Http\Controllers\SupportTeam\MarkController::class, 'print_view'])->name('print');
+    Route::get('/{student_id}/{year}', [App\Http\Controllers\SupportTeam\MarkController::class, 'show'])->name('show');
 });
 
 // Book Routes
@@ -302,6 +311,7 @@ Route::group(['prefix' => 'librarian', 'as' => 'librarian.', 'middleware' => ['a
     // Books Management
     Route::get('/books', [App\Http\Controllers\Librarian\BookController::class, 'index'])->name('books.index');
     Route::get('/books/create', [App\Http\Controllers\Librarian\BookController::class, 'create'])->name('books.create');
+    Route::get('/books/search', [App\Http\Controllers\Librarian\BookController::class, 'search'])->name('books.search');
     Route::post('/books', [App\Http\Controllers\Librarian\BookController::class, 'store'])->name('books.store');
     Route::get('/books/{book}', [App\Http\Controllers\Librarian\BookController::class, 'show'])->name('books.show');
     Route::get('/books/{book}/edit', [App\Http\Controllers\Librarian\BookController::class, 'edit'])->name('books.edit');
@@ -310,7 +320,6 @@ Route::group(['prefix' => 'librarian', 'as' => 'librarian.', 'middleware' => ['a
     Route::get('/books/{book}/issue', [App\Http\Controllers\Librarian\BookController::class, 'issueForm'])->name('books.issue');
     Route::post('/books/{book}/issue', [App\Http\Controllers\Librarian\BookController::class, 'issueBook'])->name('books.issue.store');
     Route::post('/books/{book}/return/{transaction}', [App\Http\Controllers\Librarian\BookController::class, 'returnBook'])->name('books.return');
-    Route::get('/books/search', [App\Http\Controllers\Librarian\BookController::class, 'search'])->name('books.search');
     
     // Transactions Management
     Route::get('/transactions', [App\Http\Controllers\Librarian\TransactionController::class, 'index'])->name('transactions.index');
