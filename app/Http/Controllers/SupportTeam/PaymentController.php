@@ -134,7 +134,7 @@ class PaymentController extends Controller
     public function pay_now(Request $req, $pr_id)
     {
         $this->validate($req, [
-            'amt_paid' => 'required|numeric'
+            'amt_paid' => 'required|numeric|min:0.01'
         ], [], ['amt_paid' => 'Amount Paid']);
 
         $pr = $this->pay->findRecord($pr_id);
