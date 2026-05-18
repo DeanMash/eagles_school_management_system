@@ -93,10 +93,10 @@
 
                                                 <div class="dropdown-menu dropdown-menu-left">
                                                     {{--Edit--}}
-                                                <a href="{{ route('payments.edit', $p->id) }}" class="dropdown-item"><i class="icon-pencil"></i> Edit</a>
+                                                <a href="{{ route('payments.edit', Qs::hash($p->id)) }}" class="dropdown-item"><i class="icon-pencil"></i> Edit</a>
                                                     {{--Delete--}}
                                                     <a id="{{ $p->id }}" onclick="confirmDelete(this.id)" href="#" class="dropdown-item"><i class="icon-trash"></i> Delete</a>
-                                                    <form method="post" id="item-delete-{{ $p->id }}" action="{{ route('payments.destroy', $p->id) }}" class="hidden">@csrf @method('delete')</form>
+                                                    <form method="post" id="item-delete-{{ $p->id }}" action="{{ route('payments.destroy', Qs::hash($p->id)) }}" class="hidden">@csrf @method('delete')</form>
 
                                                 </div>
                                             </div>
@@ -142,10 +142,10 @@
 
                                                 <div class="dropdown-menu dropdown-menu-left">
                                                     {{--Edit--}}
-                                                    <a href="{{ route('payments.edit', $p->id) }}" class="dropdown-item"><i class="icon-pencil"></i> Edit</a>
+                                                    <a href="{{ route('payments.edit', Qs::hash($p->id)) }}" class="dropdown-item"><i class="icon-pencil"></i> Edit</a>
                                                     {{--Delete--}}
                                                     <a id="{{ $p->id }}" onclick="confirmDelete(this.id)" href="#" class="dropdown-item"><i class="icon-trash"></i> Delete</a>
-                                                    <form method="post" id="item-delete-{{ $p->id }}" action="{{ route('payments.destroy', $p->id) }}" class="hidden">@csrf @method('delete')</form>
+                                                    <form method="post" id="item-delete-{{ $p->id }}" action="{{ route('payments.destroy', Qs::hash($p->id)) }}" class="hidden">@csrf @method('delete')</form>
 
                                                 </div>
                                             </div>

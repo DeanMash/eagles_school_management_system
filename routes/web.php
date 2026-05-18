@@ -51,7 +51,7 @@ Route::group(['prefix' => 'payments', 'as' => 'payments.', 'middleware' => ['aut
     Route::get('/invoice/{id}', [PaymentController::class, 'invoice'])->name('invoice');
     Route::get('/receipts/{pr_id}', [PaymentController::class, 'receipts'])->name('receipts');
     Route::get('/pdf-receipts/{pr_id}', [PaymentController::class, 'pdf_receipts'])->name('pdf_receipts');
-    Route::get('/{id}', [PaymentController::class, 'show'])->name('show');
+    Route::get('/{year}', [PaymentController::class, 'show'])->name('show');
     Route::get('/{id}/edit', [PaymentController::class, 'edit'])->name('edit');
     Route::put('/{id}', [PaymentController::class, 'update'])->name('update');
     Route::delete('/{id}', [PaymentController::class, 'destroy'])->name('destroy');
