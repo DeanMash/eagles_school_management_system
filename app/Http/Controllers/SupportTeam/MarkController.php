@@ -43,12 +43,17 @@ class MarkController extends Controller
 
     public function year_selector($student_id)
     {
-       return $this->verifyStudentExamYear($student_id);
+        $student_id = Qs::decodeHash($student_id);
+        if(!$student_id){ return $this->noStudentRecord(); }
+
+        return $this->verifyStudentExamYear($student_id);
     }
 
     public function year_selected(Request $req, $student_id)
     {
-        if(!$this->verifyStudentExamYear($student_id, $req->year)){
+        $student_id = Qs::decodeHash($student_id);
+
+        if(!$student_id || !$this->verifyStudentExamYear($student_id, $req->year)){
             return $this->noStudentRecord();
         }
 

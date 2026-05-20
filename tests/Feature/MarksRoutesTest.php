@@ -15,5 +15,10 @@ class MarksRoutesTest extends TestCase
 
         $this->assertSame('marks.year_selector', $route->getName());
         $this->assertSame(MarkController::class.'@year_selector', $route->getActionName());
+
+        $route = Route::getRoutes()->match(Request::create('/marks/year-selected/1', 'POST'));
+
+        $this->assertSame('marks.year_selected', $route->getName());
+        $this->assertSame(MarkController::class.'@year_selected', $route->getActionName());
     }
 }
