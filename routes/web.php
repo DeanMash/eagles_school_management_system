@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SupportTeam\StudentRecordController;
+use App\Http\Controllers\SupportTeam\PromotionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\EventController;
@@ -139,25 +140,26 @@ Route::group(['prefix' => 'students', 'as' => 'students.', 'middleware' => ['aut
     Route::get('/list', [StudentRecordController::class, 'index'])->name('list');
     Route::get('/create', [StudentRecordController::class, 'create'])->name('create');
     Route::post('/', [StudentRecordController::class, 'store'])->name('store');
+    Route::get('/graduated/list', [StudentRecordController::class, 'graduated'])->name('graduated');
+    Route::get('/class/{class_id}', [StudentRecordController::class, 'listByClass'])->name('list_by_class');
+    
+    // Promotion Routes
+    Route::get('/promotion/manage', [PromotionController::class, 'manage'])->name('promotion_manage');
+    Route::delete('/promotion/reset-all', [PromotionController::class, 'reset_all'])->name('promotion_reset_all');
+    Route::delete('/promotion/reset/{promotion_id}', [PromotionController::class, 'reset'])->name('promotion_reset');
+    Route::post('/promotion/selector', [PromotionController::class, 'selector'])->name('promote_selector');
+    Route::post('/promotion/{fc}/{fs}/{tc}/{ts}', [PromotionController::class, 'promote'])->name('promote');
+    Route::get('/promotion/{fc?}/{fs?}/{tc?}/{ts?}', [PromotionController::class, 'promotion'])->name('promotion');
+
+    // AJAX Routes
+    Route::get('/get-sections/{class_id}', [StudentRecordController::class, 'getSections'])->name('get_sections');
+    Route::get('/get-districts', [StudentRecordController::class, 'getDistricts'])->name('get_districts');
     Route::get('/{id}', [StudentRecordController::class, 'show'])->name('show');
     Route::get('/{id}/edit', [StudentRecordController::class, 'edit'])->name('edit');
     Route::put('/{id}', [StudentRecordController::class, 'update'])->name('update');
     Route::delete('/{id}', [StudentRecordController::class, 'destroy'])->name('destroy');
     Route::get('/{id}/reset-password', [StudentRecordController::class, 'reset_pass'])->name('reset_password');
-    Route::get('/graduated/list', [StudentRecordController::class, 'graduated'])->name('graduated');
     Route::get('/{id}/not-graduated', [StudentRecordController::class, 'not_graduated'])->name('not_graduated');
-    Route::get('/class/{class_id}', [StudentRecordController::class, 'listByClass'])->name('list_by_class');
-    
-    // Promotion Routes
-    Route::get('/promotion', [StudentRecordController::class, 'promotion'])->name('promotion');
-    Route::post('/promotion', [StudentRecordController::class, 'promote'])->name('promote');
-    Route::get('/promotion/manage', [StudentRecordController::class, 'promotion_manage'])->name('promotion_manage');
-    Route::delete('/promotion/reset/{id}', [StudentRecordController::class, 'promotion_reset'])->name('promotion_reset');
-    Route::delete('/promotion/reset-all', [StudentRecordController::class, 'promotion_reset_all'])->name('promotion_reset_all');
-
-    // AJAX Routes
-    Route::get('/get-sections/{class_id}', [StudentRecordController::class, 'getSections'])->name('get_sections');
-    Route::get('/get-districts', [StudentRecordController::class, 'getDistricts'])->name('get_districts');
 });
 
 // Other Groups
@@ -247,10 +249,10 @@ Route::group(['prefix' => 'marks', 'as' => 'marks.', 'middleware' => ['auth']], 
     Route::post('/batch-update', [App\Http\Controllers\SupportTeam\MarkController::class, 'batch_update'])->name('batch_update');
     Route::get('/manage/{exam_id}/{class_id}/{section_id}/{subject_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'manage'])->name('manage');
     Route::post('/update/{exam_id}/{class_id}/{section_id}/{subject_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'update'])->name('update');
-    Route::get('/{student_id}/{year}', [App\Http\Controllers\SupportTeam\MarkController::class, 'show'])->name('show');
     Route::get('/year-selector/{student_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'year_selector'])->name('year_selector');
     Route::post('/year-selected/{student_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'year_selected'])->name('year_selected');
     Route::get('/print/{student_id}/{exam_id}/{year}', [App\Http\Controllers\SupportTeam\MarkController::class, 'print_view'])->name('print_view');
+    Route::get('/{student_id}/{year}', [App\Http\Controllers\SupportTeam\MarkController::class, 'show'])->name('show');
 });
 
 // Book Routes

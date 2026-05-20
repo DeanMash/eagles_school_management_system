@@ -63,21 +63,27 @@ class PromotionController extends Controller
         }
 
         foreach($students as $st){
-            $p = 'p-'.$st->id;
-            $p = $req->$p;
+            $p = $req->input('p-'.$st->id);
+            if(!in_array($p, ['P', 'D', 'G'], true)){
+                return redirect()->route('students.promotion')->with('flash_danger', 'Invalid promotion selection.');
+            }
+
+            $d = ['grad' => 0, 'grad_date' => null];
+
             if($p === 'P'){ // Promote
                 $d['my_class_id'] = $tc;
                 $d['section_id'] = $ts;
                 $d['session'] = $ny;
             }
-            if($p === 'D'){ // Don't Promote
+            elseif($p === 'D'){ // Don't Promote
                 $d['my_class_id'] = $fc;
                 $d['section_id'] = $fs;
                 $d['session'] = $ny;
             }
-            if($p === 'G'){ // Graduated
+            else{ // Graduated
                 $d['my_class_id'] = $fc;
                 $d['section_id'] = $fs;
+                $d['session'] = $oy;
                 $d['grad'] = 1;
                 $d['grad_date'] = $oy;
             }
