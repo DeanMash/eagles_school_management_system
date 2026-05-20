@@ -27,7 +27,7 @@ class MarkController extends Controller
         $this->my_class =  $my_class;
         $this->year =  Qs::getSetting('current_session');
 
-       // $this->middleware('teamSAT', ['except' => ['show', 'year_selected', 'year_selector', 'print_view'] ]);
+        $this->middleware('teamSAT', ['except' => ['show', 'year_selected', 'year_selector', 'print_view']]);
     }
 
     public function index()
@@ -294,7 +294,8 @@ class MarkController extends Controller
         foreach($marks as $mk){
 
             $total = $mk->$tex;
-            $d['grade_id'] = $this->mark->getGrade($total, $class_type->id);
+            $grade = $this->mark->getGrade($total, $class_type->id);
+            $d['grade_id'] = $grade ? $grade->id : NULL;
 
             /*      if($exam->term == 3){
                       $d['cum'] = $this->mark->getSubCumTotal($total, $mk->student_id, $mk->subject_id, $class_id, $this->year);
