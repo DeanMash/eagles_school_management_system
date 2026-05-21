@@ -241,16 +241,20 @@ Route::group(['prefix' => 'marks', 'as' => 'marks.', 'middleware' => ['auth']], 
     Route::post('/selector', [App\Http\Controllers\SupportTeam\MarkController::class, 'selector'])->name('selector');
     Route::get('/bulk/{class_id?}/{section_id?}', [App\Http\Controllers\SupportTeam\MarkController::class, 'bulk'])->name('bulk');
     Route::post('/bulk-select', [App\Http\Controllers\SupportTeam\MarkController::class, 'bulk_select'])->name('bulk_select');
+    Route::get('/tabulation/print/{exam_id}/{class_id}/{section_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'print_tabulation'])->name('print_tabulation');
     Route::get('/tabulation/{exam_id?}/{class_id?}/{section_id?}', [App\Http\Controllers\SupportTeam\MarkController::class, 'tabulation'])->name('tabulation');
     Route::post('/tabulation-select', [App\Http\Controllers\SupportTeam\MarkController::class, 'tabulation_select'])->name('tabulation_select');
     Route::get('/batch-fix', [App\Http\Controllers\SupportTeam\MarkController::class, 'batch_fix'])->name('batch_fix');
     Route::post('/batch-update', [App\Http\Controllers\SupportTeam\MarkController::class, 'batch_update'])->name('batch_update');
     Route::get('/manage/{exam_id}/{class_id}/{section_id}/{subject_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'manage'])->name('manage');
     Route::post('/update/{exam_id}/{class_id}/{section_id}/{subject_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'update'])->name('update');
-    Route::get('/{student_id}/{year}', [App\Http\Controllers\SupportTeam\MarkController::class, 'show'])->name('show');
     Route::get('/year-selector/{student_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'year_selector'])->name('year_selector');
     Route::post('/year-selected/{student_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'year_selected'])->name('year_selected');
+    Route::post('/comment/{exr_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'comment_update'])->name('comment_update');
+    Route::post('/skills/{skill}/{exr_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'skills_update'])->name('skills_update');
+    Route::get('/print/{student_id}/{exam_id}/{year}', [App\Http\Controllers\SupportTeam\MarkController::class, 'print_view'])->name('print');
     Route::get('/print/{student_id}/{exam_id}/{year}', [App\Http\Controllers\SupportTeam\MarkController::class, 'print_view'])->name('print_view');
+    Route::get('/{student_id}/{year}', [App\Http\Controllers\SupportTeam\MarkController::class, 'show'])->name('show');
 });
 
 // Book Routes

@@ -27,7 +27,7 @@ class MarkController extends Controller
         $this->my_class =  $my_class;
         $this->year =  Qs::getSetting('current_session');
 
-       // $this->middleware('teamSAT', ['except' => ['show', 'year_selected', 'year_selector', 'print_view'] ]);
+        $this->middleware('teamSAT', ['except' => ['show', 'year_selected', 'year_selector', 'print_view']]);
     }
 
     public function index()
@@ -43,11 +43,13 @@ class MarkController extends Controller
 
     public function year_selector($student_id)
     {
-       return $this->verifyStudentExamYear($student_id);
+        return $this->verifyStudentExamYear($this->decodeStudentId($student_id));
     }
 
     public function year_selected(Request $req, $student_id)
     {
+        $student_id = $this->decodeStudentId($student_id);
+
         if(!$this->verifyStudentExamYear($student_id, $req->year)){
             return $this->noStudentRecord();
         }
@@ -470,6 +472,11 @@ class MarkController extends Controller
     protected function noStudentRecord()
     {
         return redirect()->route('dashboard')->with('flash_danger', __('msg.srnf'));
+    }
+
+    protected function decodeStudentId($student_id)
+    {
+        return Qs::decodeHash($student_id) ?: $student_id;
     }
 
     protected function checkPinVerified($st_id)
