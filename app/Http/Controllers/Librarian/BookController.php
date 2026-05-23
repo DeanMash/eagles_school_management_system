@@ -196,8 +196,17 @@ class BookController extends Controller
     }
 
     // Return book
-    public function returnBook(BookTransaction $transaction)
+    public function returnBook(Book $book, BookTransaction $transaction)
     {
+        if($transaction->book_id !== $book->id){
+            abort(404);
+        }
+
+        if($transaction->status !== 'issued'){
+            return redirect()->back()
+                ->with('error', 'This book transaction has already been closed.');
+        }
+
         $transaction->update([
             'return_date' => now(),
             'status' => 'returned',
@@ -205,9 +214,11 @@ class BookController extends Controller
             'notes' => $transaction->notes . "\n\nReturned on: " . now()->format('Y-m-d')
         ]);
 
-        // Update book copies
-        $book = $transaction->book;
-        $book->increment('available_copies');
+        // Do not let repeated returns inflate inventory above the owned copy count.
+        if($book->available_copies < $book->copies){
+            $book->increment('available_copies');
+            $book->refresh();
+        }
         
         if ($book->available_copies > 0 && $book->status === 'checked_out') {
             $book->update(['status' => 'available']);

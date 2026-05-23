@@ -53,7 +53,7 @@ class PromotionController extends Controller
 
     public function promote(Request $req, $fc, $fs, $tc, $ts)
     {
-        $oy = Qs::getSetting('current_session'); $d = [];
+        $oy = Qs::getSetting('current_session');
         $old_yr = explode('-', $oy);
         $ny = ++$old_yr[0].'-'.++$old_yr[1];
         $students = $this->student->getRecord(['my_class_id' => $fc, 'section_id' => $fs, 'session' => $oy ])->get()->sortBy('user.name');
@@ -65,6 +65,13 @@ class PromotionController extends Controller
         foreach($students as $st){
             $p = 'p-'.$st->id;
             $p = $req->$p;
+
+            if(!in_array($p, ['P', 'D', 'G'])){
+                continue;
+            }
+
+            $d = ['grad' => 0, 'grad_date' => NULL];
+
             if($p === 'P'){ // Promote
                 $d['my_class_id'] = $tc;
                 $d['section_id'] = $ts;

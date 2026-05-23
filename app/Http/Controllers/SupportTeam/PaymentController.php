@@ -133,12 +133,14 @@ class PaymentController extends Controller
 
     public function pay_now(Request $req, $pr_id)
     {
-        $this->validate($req, [
-            'amt_paid' => 'required|numeric'
-        ], [], ['amt_paid' => 'Amount Paid']);
-
         $pr = $this->pay->findRecord($pr_id);
         $payment = $this->pay->find($pr->payment_id);
+        $remaining = max(0, $payment->amount - $pr->amt_paid);
+
+        $this->validate($req, [
+            'amt_paid' => 'required|numeric|min:0.01|max:'.$remaining
+        ], [], ['amt_paid' => 'Amount Paid']);
+
         $d['amt_paid'] = $amt_p = $pr->amt_paid + $req->amt_paid;
         $d['balance'] = $bal = $payment->amount - $amt_p;
         $d['paid'] = $bal < 1 ? 1 : 0;
