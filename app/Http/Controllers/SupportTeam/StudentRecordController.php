@@ -23,7 +23,8 @@ class StudentRecordController extends Controller
 
     public function __construct(LocationRepo $loc, MyClassRepo $my_class, UserRepo $user, StudentRepo $student)
     {
-        $this->middleware('teamSA', ['only' => ['edit','update', 'reset_pass', 'create', 'store', 'graduated', 'index']]);
+        $this->middleware('teamSA', ['only' => ['edit','update', 'reset_pass', 'create', 'store', 'graduated', 'index', 'not_graduated']]);
+        $this->middleware('teamSAT', ['only' => ['listByClass']]);
         $this->middleware('super_admin', ['only' => ['destroy']]);
 
         $this->loc = $loc;
@@ -232,6 +233,9 @@ class StudentRecordController extends Controller
 
     public function not_graduated($sr_id)
     {
+        $sr_id = Qs::decodeHash($sr_id);
+        if(!$sr_id){return Qs::goWithDanger();}
+
         $d['grad'] = 0;
         $d['grad_date'] = NULL;
         $d['session'] = Qs::getSetting('current_session');
@@ -245,7 +249,8 @@ class StudentRecordController extends Controller
         $sr_id = Qs::decodeHash($sr_id);
         if(!$sr_id){return Qs::goWithDanger();}
 
-        $data['sr'] = $this->student->getRecord(['id' => $sr_id])->first();
+        $data['sr'] = $this->findStudentRecord($sr_id);
+        if(!$data['sr']){return Qs::goWithDanger();}
 
         /* Prevent Other Students/Parents from viewing Profile of others */
         if(Auth::user()->id != $data['sr']->user_id && !Qs::userIsTeamSAT() && !Qs::userIsMyChild($data['sr']->user_id, Auth::user()->id)){
@@ -260,7 +265,8 @@ class StudentRecordController extends Controller
         $sr_id = Qs::decodeHash($sr_id);
         if(!$sr_id){return Qs::goWithDanger();}
 
-        $data['sr'] = $this->student->getRecord(['id' => $sr_id])->first();
+        $data['sr'] = $this->findStudentRecord($sr_id);
+        if(!$data['sr']){return Qs::goWithDanger();}
         $data['my_classes'] = $this->my_class->all();
         $data['parents'] = $this->user->getUserByType('parent');
         $data['dorms'] = $this->student->getAllDorms();
@@ -285,7 +291,8 @@ class StudentRecordController extends Controller
         $sr_id = Qs::decodeHash($sr_id);
         if(!$sr_id){return Qs::goWithDanger();}
 
-        $sr = $this->student->getRecord(['id' => $sr_id])->first();
+        $sr = $this->findStudentRecord($sr_id);
+        if(!$sr){return Qs::goWithDanger();}
         $userRecordData = $req->only(Qs::getUserRecord());
         $userRecordData['name'] = ucwords($req->name);
         
@@ -355,12 +362,25 @@ class StudentRecordController extends Controller
         $st_id = Qs::decodeHash($st_id);
         if(!$st_id){return Qs::goWithDanger();}
 
-        $sr = $this->student->getRecord(['user_id' => $st_id])->first();
+        $sr = $this->findStudentRecordByUser($st_id);
+        if(!$sr){return Qs::goWithDanger();}
         $path = Qs::getUploadPath('student').$sr->user->code;
         Storage::exists($path) ? Storage::deleteDirectory($path) : false;
         $this->user->delete($sr->user->id);
 
         return back()->with('flash_success', __('msg.del_ok'));
+    }
+
+    protected function findStudentRecord($sr_id)
+    {
+        return $this->student->getRecord(['id' => $sr_id])->first()
+            ?: $this->student->getGradRecord(['id' => $sr_id])->first();
+    }
+
+    protected function findStudentRecordByUser($user_id)
+    {
+        return $this->student->getRecord(['user_id' => $user_id])->first()
+            ?: $this->student->getGradRecord(['user_id' => $user_id])->first();
     }
 
     // Add this method to handle AJAX requests for getting sections
