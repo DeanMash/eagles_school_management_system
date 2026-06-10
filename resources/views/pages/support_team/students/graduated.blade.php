@@ -59,7 +59,7 @@
 
                                         {{--Not Graduated--}}
                                         <a id="{{ Qs::hash($s->id) }}" href="#" onclick="$('form#ng-'+this.id).submit();" class="dropdown-item"><i class="icon-stairs-down"></i> Not Graduated</a>
-                                            <form method="post" id="ng-{{ Qs::hash($s->id) }}" action="{{ route('st.not_graduated', Qs::hash($s->id)) }}" class="hidden">@csrf @method('put')</form>
+                                            <form method="post" id="ng-{{ Qs::hash($s->id) }}" action="{{ route('students.not_graduated', Qs::hash($s->id)) }}" class="hidden">@csrf @method('put')</form>
                                         @endif
 
                                         <a target="_blank" href="{{ route('marks.year_selector', Qs::hash($s->user->id)) }}" class="dropdown-item"><i class="icon-check"></i> Marksheet</a>
@@ -116,7 +116,7 @@
 
                                                 {{--Not Graduated--}}
                                                 <a id="{{ Qs::hash($s->id) }}" href="#" onclick="$('form#ng-'+this.id).submit();" class="dropdown-item"><i class="icon-stairs-down"></i> Not Graduated</a>
-                                                <form method="post" id="ng-{{ Qs::hash($s->id) }}" action="{{ route('st.not_graduated', Qs::hash($s->id)) }}" class="hidden">@csrf @method('put')</form>
+                                                <form method="post" id="ng-{{ Qs::hash($s->id) }}" action="{{ route('students.not_graduated', Qs::hash($s->id)) }}" class="hidden">@csrf @method('put')</form>
                                             @endif
 
                                             <a target="_blank" href="{{ route('marks.year_selector', Qs::hash($s->user->id)) }}" class="dropdown-item"><i class="icon-check"></i> Marksheet</a>

@@ -19,6 +19,22 @@ class TimeTableController extends Controller
 
     public function __construct(TimeTableRepo $tt, MyClassRepo $mc, ExamRepo $exam)
     {
+        $this->middleware('teamSA', ['only' => [
+            'store',
+            'update',
+            'delete',
+            'store_time_slot',
+            'update_time_slot',
+            'delete_time_slot',
+            'use_time_slot',
+            'bulk_create_time_slots',
+            'store_record',
+            'bulk_store_subjects',
+            'store_weekly_slots',
+            'update_record',
+            'delete_record',
+        ]]);
+
         $this->tt = $tt;
         $this->my_class = $mc;
         $this->exam = $exam;
