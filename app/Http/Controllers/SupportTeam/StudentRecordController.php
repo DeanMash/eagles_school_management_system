@@ -23,7 +23,7 @@ class StudentRecordController extends Controller
 
     public function __construct(LocationRepo $loc, MyClassRepo $my_class, UserRepo $user, StudentRepo $student)
     {
-        $this->middleware('teamSA', ['only' => ['edit','update', 'reset_pass', 'create', 'store', 'graduated', 'index']]);
+        $this->middleware('teamSA', ['only' => ['edit','update', 'reset_pass', 'create', 'store', 'graduated', 'index', 'not_graduated']]);
         $this->middleware('super_admin', ['only' => ['destroy']]);
 
         $this->loc = $loc;
@@ -43,7 +43,8 @@ class StudentRecordController extends Controller
 
     public function reset_pass($st_id)
     {
-        $st_id = Qs::decodeHash($st_id);
+        if(!$st_id){return Qs::goWithDanger();}
+
         $data['password'] = Hash::make('student');
         $this->user->update($st_id, $data);
         return back()->with('flash_success', __('msg.p_reset'));
@@ -232,6 +233,8 @@ class StudentRecordController extends Controller
 
     public function not_graduated($sr_id)
     {
+        if(!$sr_id){return Qs::goWithDanger();}
+
         $d['grad'] = 0;
         $d['grad_date'] = NULL;
         $d['session'] = Qs::getSetting('current_session');
@@ -242,7 +245,6 @@ class StudentRecordController extends Controller
 
     public function show($sr_id)
     {
-        $sr_id = Qs::decodeHash($sr_id);
         if(!$sr_id){return Qs::goWithDanger();}
 
         $data['sr'] = $this->student->getRecord(['id' => $sr_id])->first();
@@ -257,7 +259,6 @@ class StudentRecordController extends Controller
 
     public function edit($sr_id)
     {
-        $sr_id = Qs::decodeHash($sr_id);
         if(!$sr_id){return Qs::goWithDanger();}
 
         $data['sr'] = $this->student->getRecord(['id' => $sr_id])->first();
@@ -282,7 +283,6 @@ class StudentRecordController extends Controller
 
     public function update(StudentRecordUpdateRequest $req, $sr_id)
     {
-        $sr_id = Qs::decodeHash($sr_id);
         if(!$sr_id){return Qs::goWithDanger();}
 
         $sr = $this->student->getRecord(['id' => $sr_id])->first();
@@ -352,7 +352,6 @@ class StudentRecordController extends Controller
 
     public function destroy($st_id)
     {
-        $st_id = Qs::decodeHash($st_id);
         if(!$st_id){return Qs::goWithDanger();}
 
         $sr = $this->student->getRecord(['user_id' => $st_id])->first();
