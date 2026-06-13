@@ -23,6 +23,8 @@ class TimeTableController extends Controller
         $this->my_class = $mc;
         $this->exam = $exam;
         $this->year = Qs::getCurrentSession();
+
+        $this->middleware('teamSA');
     }
 
     public function index()

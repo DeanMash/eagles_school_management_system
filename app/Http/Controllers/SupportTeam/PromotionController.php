@@ -63,6 +63,10 @@ class PromotionController extends Controller
         }
 
         foreach($students as $st){
+            $d = [
+                'grad' => 0,
+                'grad_date' => null,
+            ];
             $p = 'p-'.$st->id;
             $p = $req->$p;
             if($p === 'P'){ // Promote
