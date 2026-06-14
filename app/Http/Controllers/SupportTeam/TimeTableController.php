@@ -19,6 +19,8 @@ class TimeTableController extends Controller
 
     public function __construct(TimeTableRepo $tt, MyClassRepo $mc, ExamRepo $exam)
     {
+        $this->middleware('teamSA', ['except' => ['index', 'show_record', 'print_record']]);
+
         $this->tt = $tt;
         $this->my_class = $mc;
         $this->exam = $exam;
