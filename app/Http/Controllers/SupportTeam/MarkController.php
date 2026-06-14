@@ -27,7 +27,7 @@ class MarkController extends Controller
         $this->my_class =  $my_class;
         $this->year =  Qs::getSetting('current_session');
 
-       // $this->middleware('teamSAT', ['except' => ['show', 'year_selected', 'year_selector', 'print_view'] ]);
+        $this->middleware('teamSAT', ['except' => ['show', 'year_selected', 'year_selector', 'print_view']]);
     }
 
     public function index()
