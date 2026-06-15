@@ -110,10 +110,8 @@ class EventController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(Event $event)
     {
-        $event = Event::findOrFail($id);
-        
         // Check if user can view this event
         if (!$event->is_public && $event->created_by != Auth::id() && Auth::user()->user_type != 'admin') {
             abort(403, 'Unauthorized to view this event');
@@ -282,13 +280,12 @@ class EventController extends Controller
     /**
      * Toggle event public/private status (ADMIN ONLY)
      */
-    public function toggleVisibility($id)
+    public function toggleVisibility(Event $event)
     {
         if (Auth::user()->user_type != 'admin') {
             abort(403, 'Unauthorized');
         }
-        
-        $event = Event::findOrFail($id);
+
         $event->is_public = !$event->is_public;
         $event->save();
         

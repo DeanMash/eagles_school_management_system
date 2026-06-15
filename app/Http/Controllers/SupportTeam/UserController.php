@@ -182,7 +182,6 @@ class UserController extends Controller
 
     public function edit($id)
     {
-        $id = Qs::decodeHash($id);
         $user = $this->user->find($id);
         
         if (!$user) {
@@ -296,7 +295,7 @@ class UserController extends Controller
 
     public function update(UserRequest $req, $id)
     {
-        $id = Qs::decodeHash($id);
+        if(!$id){return Qs::json(__('msg.rnf'), FALSE);}
 
         // Redirect if Making Changes to Head of Super Admins
         if(Qs::headSA($id)){
@@ -304,6 +303,7 @@ class UserController extends Controller
         }
 
         $user = $this->user->find($id);
+        if(!$user){return Qs::json(__('msg.rnf'), FALSE);}
 
         $user_type = $user->user_type;
         $user_is_staff = in_array($user_type, Qs::getStaff());
@@ -342,10 +342,10 @@ class UserController extends Controller
 
     public function show($user_id)
     {
-        $user_id = Qs::decodeHash($user_id);
         if(!$user_id){return back();}
 
         $data['user'] = $this->user->find($user_id);
+        if(!$data['user']){return back();}
 
         /* Prevent Other Students from viewing Profile of others*/
         if(Auth::user()->id != $user_id && !Qs::userIsTeamSAT() && !Qs::userIsMyChild(Auth::user()->id, $user_id)){
@@ -357,7 +357,7 @@ class UserController extends Controller
 
     public function destroy($id)
     {
-        $id = Qs::decodeHash($id);
+        if(!$id){return back()->with('pop_error', __('msg.rnf'));}
 
         // Redirect if Making Changes to Head of Super Admins
         if(Qs::headSA($id)){
@@ -365,6 +365,7 @@ class UserController extends Controller
         }
 
         $user = $this->user->find($id);
+        if(!$user){return back()->with('pop_error', __('msg.rnf'));}
 
         if($user->user_type == 'teacher' && $this->userTeachesSubject($user)) {
             return back()->with('pop_error', __('msg.del_teacher'));

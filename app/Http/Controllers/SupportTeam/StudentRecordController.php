@@ -23,7 +23,7 @@ class StudentRecordController extends Controller
 
     public function __construct(LocationRepo $loc, MyClassRepo $my_class, UserRepo $user, StudentRepo $student)
     {
-        $this->middleware('teamSA', ['only' => ['edit','update', 'reset_pass', 'create', 'store', 'graduated', 'index']]);
+        $this->middleware('teamSA', ['only' => ['edit','update', 'reset_pass', 'update_password', 'reset_password_custom', 'create', 'store', 'graduated', 'index', 'not_graduated']]);
         $this->middleware('super_admin', ['only' => ['destroy']]);
 
         $this->loc = $loc;
@@ -43,10 +43,46 @@ class StudentRecordController extends Controller
 
     public function reset_pass($st_id)
     {
-        $st_id = Qs::decodeHash($st_id);
+        if(!$st_id){return Qs::goWithDanger();}
+
         $data['password'] = Hash::make('student');
         $this->user->update($st_id, $data);
         return back()->with('flash_success', __('msg.p_reset'));
+    }
+
+    public function update_password(Request $req, $st_id)
+    {
+        if(!$st_id){return response()->json(['ok' => false, 'msg' => __('msg.rnf')], 404);}
+
+        $this->validate($req, [
+            'current_password' => 'required',
+            'new_password' => 'required|min:6|confirmed',
+        ]);
+
+        $user = $this->user->find($st_id);
+        if(!$user){return response()->json(['ok' => false, 'msg' => __('msg.rnf')], 404);}
+
+        if(!Hash::check($req->current_password, $user->password)){
+            return response()->json([
+                'errors' => ['current_password' => ['Current password is incorrect.']]
+            ], 422);
+        }
+
+        $this->user->update($st_id, ['password' => Hash::make($req->new_password)]);
+
+        return Qs::jsonUpdateOk();
+    }
+
+    public function reset_password_custom($st_id)
+    {
+        if(!$st_id){return response()->json(['ok' => false, 'msg' => __('msg.rnf')], 404);}
+
+        $user = $this->user->find($st_id);
+        if(!$user){return response()->json(['ok' => false, 'msg' => __('msg.rnf')], 404);}
+
+        $this->user->update($st_id, ['password' => Hash::make('Eagles@2024')]);
+
+        return Qs::jsonUpdateOk();
     }
 
     public function create()
@@ -242,10 +278,10 @@ class StudentRecordController extends Controller
 
     public function show($sr_id)
     {
-        $sr_id = Qs::decodeHash($sr_id);
         if(!$sr_id){return Qs::goWithDanger();}
 
         $data['sr'] = $this->student->getRecord(['id' => $sr_id])->first();
+        if(!$data['sr']){return Qs::goWithDanger();}
 
         /* Prevent Other Students/Parents from viewing Profile of others */
         if(Auth::user()->id != $data['sr']->user_id && !Qs::userIsTeamSAT() && !Qs::userIsMyChild($data['sr']->user_id, Auth::user()->id)){
@@ -257,10 +293,10 @@ class StudentRecordController extends Controller
 
     public function edit($sr_id)
     {
-        $sr_id = Qs::decodeHash($sr_id);
         if(!$sr_id){return Qs::goWithDanger();}
 
         $data['sr'] = $this->student->getRecord(['id' => $sr_id])->first();
+        if(!$data['sr']){return Qs::goWithDanger();}
         $data['my_classes'] = $this->my_class->all();
         $data['parents'] = $this->user->getUserByType('parent');
         $data['dorms'] = $this->student->getAllDorms();
@@ -282,10 +318,10 @@ class StudentRecordController extends Controller
 
     public function update(StudentRecordUpdateRequest $req, $sr_id)
     {
-        $sr_id = Qs::decodeHash($sr_id);
         if(!$sr_id){return Qs::goWithDanger();}
 
         $sr = $this->student->getRecord(['id' => $sr_id])->first();
+        if(!$sr){return Qs::goWithDanger();}
         $userRecordData = $req->only(Qs::getUserRecord());
         $userRecordData['name'] = ucwords($req->name);
         
@@ -352,10 +388,10 @@ class StudentRecordController extends Controller
 
     public function destroy($st_id)
     {
-        $st_id = Qs::decodeHash($st_id);
         if(!$st_id){return Qs::goWithDanger();}
 
         $sr = $this->student->getRecord(['user_id' => $st_id])->first();
+        if(!$sr){return Qs::goWithDanger();}
         $path = Qs::getUploadPath('student').$sr->user->code;
         Storage::exists($path) ? Storage::deleteDirectory($path) : false;
         $this->user->delete($sr->user->id);
