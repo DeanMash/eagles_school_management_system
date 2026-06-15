@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class BookController extends Controller
 {
@@ -196,21 +197,43 @@ class BookController extends Controller
     }
 
     // Return book
-    public function returnBook(BookTransaction $transaction)
+    public function returnBook(Book $book, BookTransaction $transaction)
     {
-        $transaction->update([
-            'return_date' => now(),
-            'status' => 'returned',
-            'fine_amount' => $transaction->calculateFine(),
-            'notes' => $transaction->notes . "\n\nReturned on: " . now()->format('Y-m-d')
-        ]);
+        if ((int) $transaction->book_id !== (int) $book->id) {
+            abort(404);
+        }
 
-        // Update book copies
-        $book = $transaction->book;
-        $book->increment('available_copies');
-        
-        if ($book->available_copies > 0 && $book->status === 'checked_out') {
-            $book->update(['status' => 'available']);
+        $returned = DB::transaction(function () use ($book, $transaction) {
+            $lockedTransaction = BookTransaction::whereKey($transaction->id)->lockForUpdate()->firstOrFail();
+            $lockedBook = Book::whereKey($book->id)->lockForUpdate()->firstOrFail();
+
+            if ((int) $lockedTransaction->book_id !== (int) $lockedBook->id) {
+                abort(404);
+            }
+
+            if ($lockedTransaction->status !== 'issued') {
+                return false;
+            }
+
+            $lockedTransaction->update([
+                'return_date' => now(),
+                'status' => 'returned',
+                'fine_amount' => $lockedTransaction->calculateFine(),
+                'notes' => trim(($lockedTransaction->notes ?? '') . "\n\nReturned on: " . now()->format('Y-m-d'))
+            ]);
+
+            $availableCopies = min($lockedBook->copies, $lockedBook->available_copies + 1);
+            $lockedBook->update([
+                'available_copies' => $availableCopies,
+                'status' => $availableCopies > 0 ? 'available' : $lockedBook->status,
+            ]);
+
+            return true;
+        });
+
+        if (!$returned) {
+            return redirect()->back()
+                ->with('error', 'This book transaction has already been closed.');
         }
 
         return redirect()->back()

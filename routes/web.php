@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\SupportTeam\PaymentController;
+use App\Http\Controllers\SupportTeam\PromotionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -48,13 +49,13 @@ Route::group(['prefix' => 'payments', 'as' => 'payments.', 'middleware' => ['aut
     Route::get('/daily-report', [PaymentController::class, 'dailyReport'])->name('daily_report');
     Route::post('/pay-now/{pr_id}', [PaymentController::class, 'pay_now'])->name('pay_now');
     Route::delete('/reset-record/{id}', [PaymentController::class, 'reset_record'])->name('reset_record');
-    Route::get('/invoice/{id}', [PaymentController::class, 'invoice'])->name('invoice');
+    Route::get('/invoice/{id}/{year?}', [PaymentController::class, 'invoice'])->name('invoice');
     Route::get('/receipts/{pr_id}', [PaymentController::class, 'receipts'])->name('receipts');
     Route::get('/pdf-receipts/{pr_id}', [PaymentController::class, 'pdf_receipts'])->name('pdf_receipts');
-    Route::get('/{id}', [PaymentController::class, 'show'])->name('show');
-    Route::get('/{id}/edit', [PaymentController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [PaymentController::class, 'update'])->name('update');
-    Route::delete('/{id}', [PaymentController::class, 'destroy'])->name('destroy');
+    Route::get('/{year}', [PaymentController::class, 'show'])->name('show');
+    Route::get('/{payment_id}/edit', [PaymentController::class, 'edit'])->name('edit');
+    Route::put('/{payment_id}', [PaymentController::class, 'update'])->name('update');
+    Route::delete('/{payment_id}', [PaymentController::class, 'destroy'])->name('destroy');
 });
 
 // Event Routes
@@ -62,17 +63,17 @@ Route::prefix('events')->name('events.')->middleware(['auth'])->group(function (
     Route::get('/get-by-range', [EventController::class, 'getByRange'])->name('get-by-range');
     Route::get('/get-by-date', [EventController::class, 'getByDate'])->name('get-by-date');
     Route::post('/quick-add', [EventController::class, 'quickAdd'])->name('quick-add');
+    Route::get('/today', [EventController::class, 'getTodayEvents'])->name('today');
+    Route::get('/upcoming', [EventController::class, 'getUpcomingEvents'])->name('upcoming');
+    Route::get('/stats', [EventController::class, 'getEventStats'])->name('stats');
     Route::get('/', [EventController::class, 'index'])->name('index');
     Route::get('/create', [EventController::class, 'create'])->name('create');
     Route::post('/', [EventController::class, 'store'])->name('store');
-    Route::get('/{id}', [EventController::class, 'show'])->name('show');
-    Route::get('/{id}/edit', [EventController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [EventController::class, 'update'])->name('update');
-    Route::delete('/{id}', [EventController::class, 'destroy'])->name('destroy');
-    Route::get('/today', [EventController::class, 'getTodayEvents'])->name('today');
-    Route::get('/upcoming', [EventController::class, 'getUpcomingEvents'])->name('upcoming');
-    Route::post('/{id}/toggle-visibility', [EventController::class, 'toggleVisibility'])->name('toggle-visibility');
-    Route::get('/stats', [EventController::class, 'getEventStats'])->name('stats');
+    Route::get('/{event}', [EventController::class, 'show'])->name('show');
+    Route::get('/{event}/edit', [EventController::class, 'edit'])->name('edit');
+    Route::put('/{event}', [EventController::class, 'update'])->name('update');
+    Route::delete('/{event}', [EventController::class, 'destroy'])->name('destroy');
+    Route::post('/{event}/toggle-visibility', [EventController::class, 'toggleVisibility'])->name('toggle-visibility');
 });
 
 // User Profile Routes
@@ -100,18 +101,18 @@ Route::group(['prefix' => 'users', 'as' => 'users.', 'middleware' => ['auth']], 
 });
 
 // Academic Routes - Timetables
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'teamSA'])->group(function () {
     Route::prefix('timetables')->as('tt.')->group(function () {
         Route::get('/', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'index'])->name('index');
         Route::post('/', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'store'])->name('store');
-        Route::put('/{id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'update'])->name('update');
-        Route::delete('/{id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'delete'])->name('delete');
+        Route::put('/{tt_id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'update'])->name('update');
+        Route::delete('/{tt_id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'delete'])->name('delete');
         
         // Time Slots
         Route::post('/time-slots', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'store_time_slot'])->name('time_slots.store');
-        Route::get('/time-slots/{id}/edit', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'edit_time_slot'])->name('time_slots.edit');
-        Route::put('/time-slots/{id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'update_time_slot'])->name('time_slots.update');
-        Route::delete('/time-slots/{id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'delete_time_slot'])->name('time_slots.delete');
+        Route::get('/time-slots/{ts_id}/edit', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'edit_time_slot'])->name('time_slots.edit');
+        Route::put('/time-slots/{ts_id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'update_time_slot'])->name('time_slots.update');
+        Route::delete('/time-slots/{ts_id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'delete_time_slot'])->name('time_slots.delete');
         Route::post('/use-time-slots/{ttr_id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'use_time_slot'])->name('time_slots.use');
         Route::post('/bulk-create-time-slots/{ttr_id}', [App\Http\Controllers\SupportTeam\TimeTableController::class, 'bulk_create_time_slots'])->name('time_slots.bulk_create');
     });
@@ -139,25 +140,29 @@ Route::group(['prefix' => 'students', 'as' => 'students.', 'middleware' => ['aut
     Route::get('/list', [StudentRecordController::class, 'index'])->name('list');
     Route::get('/create', [StudentRecordController::class, 'create'])->name('create');
     Route::post('/', [StudentRecordController::class, 'store'])->name('store');
-    Route::get('/{id}', [StudentRecordController::class, 'show'])->name('show');
-    Route::get('/{id}/edit', [StudentRecordController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [StudentRecordController::class, 'update'])->name('update');
-    Route::delete('/{id}', [StudentRecordController::class, 'destroy'])->name('destroy');
-    Route::get('/{id}/reset-password', [StudentRecordController::class, 'reset_pass'])->name('reset_password');
     Route::get('/graduated/list', [StudentRecordController::class, 'graduated'])->name('graduated');
-    Route::get('/{id}/not-graduated', [StudentRecordController::class, 'not_graduated'])->name('not_graduated');
     Route::get('/class/{class_id}', [StudentRecordController::class, 'listByClass'])->name('list_by_class');
     
     // Promotion Routes
-    Route::get('/promotion', [StudentRecordController::class, 'promotion'])->name('promotion');
-    Route::post('/promotion', [StudentRecordController::class, 'promote'])->name('promote');
-    Route::get('/promotion/manage', [StudentRecordController::class, 'promotion_manage'])->name('promotion_manage');
-    Route::delete('/promotion/reset/{id}', [StudentRecordController::class, 'promotion_reset'])->name('promotion_reset');
-    Route::delete('/promotion/reset-all', [StudentRecordController::class, 'promotion_reset_all'])->name('promotion_reset_all');
+    Route::post('/promotion/selector', [PromotionController::class, 'selector'])->name('promote_selector');
+    Route::get('/promotion/manage', [PromotionController::class, 'manage'])->name('promotion_manage');
+    Route::delete('/promotion/reset-all', [PromotionController::class, 'reset_all'])->name('promotion_reset_all');
+    Route::delete('/promotion/reset/{promotion_id}', [PromotionController::class, 'reset'])->name('promotion_reset');
+    Route::get('/promotion/{fc?}/{fs?}/{tc?}/{ts?}', [PromotionController::class, 'promotion'])->name('promotion');
+    Route::post('/promotion/{fc}/{fs}/{tc}/{ts}', [PromotionController::class, 'promote'])->name('promote');
 
     // AJAX Routes
     Route::get('/get-sections/{class_id}', [StudentRecordController::class, 'getSections'])->name('get_sections');
     Route::get('/get-districts', [StudentRecordController::class, 'getDistricts'])->name('get_districts');
+
+    Route::put('/{id}/not-graduated', [StudentRecordController::class, 'not_graduated'])->name('not_graduated');
+    Route::get('/{id}/reset-password', [StudentRecordController::class, 'reset_pass'])->name('reset_password');
+    Route::put('/{id}/update-password', [StudentRecordController::class, 'update_password'])->name('update.password');
+    Route::post('/{id}/reset-password-custom', [StudentRecordController::class, 'reset_password_custom'])->name('reset.password.custom');
+    Route::get('/{id}', [StudentRecordController::class, 'show'])->name('show');
+    Route::get('/{id}/edit', [StudentRecordController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [StudentRecordController::class, 'update'])->name('update');
+    Route::delete('/{id}', [StudentRecordController::class, 'destroy'])->name('destroy');
 });
 
 // Other Groups
@@ -178,27 +183,27 @@ Route::group(['prefix' => 'teachers', 'as' => 'teachers.', 'middleware' => ['aut
 Route::group(['prefix' => 'classes', 'as' => 'classes.', 'middleware' => ['auth']], function () {
     Route::get('/', [App\Http\Controllers\SupportTeam\MyClassController::class, 'index'])->name('index');
     Route::post('/', [App\Http\Controllers\SupportTeam\MyClassController::class, 'store'])->name('store');
-    Route::get('/{id}/edit', [App\Http\Controllers\SupportTeam\MyClassController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [App\Http\Controllers\SupportTeam\MyClassController::class, 'update'])->name('update');
-    Route::delete('/{id}', [App\Http\Controllers\SupportTeam\MyClassController::class, 'destroy'])->name('destroy');
+    Route::get('/{class_id}/edit', [App\Http\Controllers\SupportTeam\MyClassController::class, 'edit'])->name('edit');
+    Route::put('/{class_id}', [App\Http\Controllers\SupportTeam\MyClassController::class, 'update'])->name('update');
+    Route::delete('/{class_id}', [App\Http\Controllers\SupportTeam\MyClassController::class, 'destroy'])->name('destroy');
 });
 
 // Subjects Management Routes
 Route::group(['prefix' => 'subjects', 'as' => 'subjects.', 'middleware' => ['auth']], function () {
     Route::get('/', [App\Http\Controllers\SupportTeam\SubjectController::class, 'index'])->name('index');
     Route::post('/', [App\Http\Controllers\SupportTeam\SubjectController::class, 'store'])->name('store');
-    Route::get('/{id}/edit', [App\Http\Controllers\SupportTeam\SubjectController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [App\Http\Controllers\SupportTeam\SubjectController::class, 'update'])->name('update');
-    Route::delete('/{id}', [App\Http\Controllers\SupportTeam\SubjectController::class, 'destroy'])->name('destroy');
+    Route::get('/{subject_id}/edit', [App\Http\Controllers\SupportTeam\SubjectController::class, 'edit'])->name('edit');
+    Route::put('/{subject_id}', [App\Http\Controllers\SupportTeam\SubjectController::class, 'update'])->name('update');
+    Route::delete('/{subject_id}', [App\Http\Controllers\SupportTeam\SubjectController::class, 'destroy'])->name('destroy');
 });
 
 // Dorms Management Routes
 Route::group(['prefix' => 'dorms', 'as' => 'dorms.', 'middleware' => ['auth']], function () {
     Route::get('/', [App\Http\Controllers\SupportTeam\DormController::class, 'index'])->name('index');
     Route::post('/', [App\Http\Controllers\SupportTeam\DormController::class, 'store'])->name('store');
-    Route::get('/{id}/edit', [App\Http\Controllers\SupportTeam\DormController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [App\Http\Controllers\SupportTeam\DormController::class, 'update'])->name('update');
-    Route::delete('/{id}', [App\Http\Controllers\SupportTeam\DormController::class, 'destroy'])->name('destroy');
+    Route::get('/{dorm_id}/edit', [App\Http\Controllers\SupportTeam\DormController::class, 'edit'])->name('edit');
+    Route::put('/{dorm_id}', [App\Http\Controllers\SupportTeam\DormController::class, 'update'])->name('update');
+    Route::delete('/{dorm_id}', [App\Http\Controllers\SupportTeam\DormController::class, 'destroy'])->name('destroy');
 });
 
 // Classrooms Management Routes (for timetable room assignment)
@@ -212,27 +217,27 @@ Route::group(['prefix' => 'classrooms', 'as' => 'classrooms.', 'middleware' => [
 Route::group(['prefix' => 'sections', 'as' => 'sections.', 'middleware' => ['auth']], function () {
     Route::get('/', [App\Http\Controllers\SupportTeam\SectionController::class, 'index'])->name('index');
     Route::post('/', [App\Http\Controllers\SupportTeam\SectionController::class, 'store'])->name('store');
-    Route::get('/{id}/edit', [App\Http\Controllers\SupportTeam\SectionController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [App\Http\Controllers\SupportTeam\SectionController::class, 'update'])->name('update');
-    Route::delete('/{id}', [App\Http\Controllers\SupportTeam\SectionController::class, 'destroy'])->name('destroy');
+    Route::get('/{section_id}/edit', [App\Http\Controllers\SupportTeam\SectionController::class, 'edit'])->name('edit');
+    Route::put('/{section_id}', [App\Http\Controllers\SupportTeam\SectionController::class, 'update'])->name('update');
+    Route::delete('/{section_id}', [App\Http\Controllers\SupportTeam\SectionController::class, 'destroy'])->name('destroy');
 });
 
 // Exams Management Routes
 Route::group(['prefix' => 'exams', 'as' => 'exams.', 'middleware' => ['auth']], function () {
     Route::get('/', [App\Http\Controllers\SupportTeam\ExamController::class, 'index'])->name('index');
     Route::post('/', [App\Http\Controllers\SupportTeam\ExamController::class, 'store'])->name('store');
-    Route::get('/{id}/edit', [App\Http\Controllers\SupportTeam\ExamController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [App\Http\Controllers\SupportTeam\ExamController::class, 'update'])->name('update');
-    Route::delete('/{id}', [App\Http\Controllers\SupportTeam\ExamController::class, 'destroy'])->name('destroy');
+    Route::get('/{exam_id}/edit', [App\Http\Controllers\SupportTeam\ExamController::class, 'edit'])->name('edit');
+    Route::put('/{exam_id}', [App\Http\Controllers\SupportTeam\ExamController::class, 'update'])->name('update');
+    Route::delete('/{exam_id}', [App\Http\Controllers\SupportTeam\ExamController::class, 'destroy'])->name('destroy');
 });
 
 // Grades Management Routes
 Route::group(['prefix' => 'grades', 'as' => 'grades.', 'middleware' => ['auth']], function () {
     Route::get('/', [App\Http\Controllers\SupportTeam\GradeController::class, 'index'])->name('index');
     Route::post('/', [App\Http\Controllers\SupportTeam\GradeController::class, 'store'])->name('store');
-    Route::get('/{id}/edit', [App\Http\Controllers\SupportTeam\GradeController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [App\Http\Controllers\SupportTeam\GradeController::class, 'update'])->name('update');
-    Route::delete('/{id}', [App\Http\Controllers\SupportTeam\GradeController::class, 'destroy'])->name('destroy');
+    Route::get('/{grade_id}/edit', [App\Http\Controllers\SupportTeam\GradeController::class, 'edit'])->name('edit');
+    Route::put('/{grade_id}', [App\Http\Controllers\SupportTeam\GradeController::class, 'update'])->name('update');
+    Route::delete('/{grade_id}', [App\Http\Controllers\SupportTeam\GradeController::class, 'destroy'])->name('destroy');
 });
 
 // Marks Management Routes
@@ -244,13 +249,26 @@ Route::group(['prefix' => 'marks', 'as' => 'marks.', 'middleware' => ['auth']], 
     Route::get('/tabulation/{exam_id?}/{class_id?}/{section_id?}', [App\Http\Controllers\SupportTeam\MarkController::class, 'tabulation'])->name('tabulation');
     Route::post('/tabulation-select', [App\Http\Controllers\SupportTeam\MarkController::class, 'tabulation_select'])->name('tabulation_select');
     Route::get('/batch-fix', [App\Http\Controllers\SupportTeam\MarkController::class, 'batch_fix'])->name('batch_fix');
-    Route::post('/batch-update', [App\Http\Controllers\SupportTeam\MarkController::class, 'batch_update'])->name('batch_update');
+    Route::put('/batch-update', [App\Http\Controllers\SupportTeam\MarkController::class, 'batch_update'])->name('batch_update');
     Route::get('/manage/{exam_id}/{class_id}/{section_id}/{subject_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'manage'])->name('manage');
-    Route::post('/update/{exam_id}/{class_id}/{section_id}/{subject_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'update'])->name('update');
-    Route::get('/{student_id}/{year}', [App\Http\Controllers\SupportTeam\MarkController::class, 'show'])->name('show');
+    Route::put('/update/{exam_id}/{class_id}/{section_id}/{subject_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'update'])->name('update');
     Route::get('/year-selector/{student_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'year_selector'])->name('year_selector');
     Route::post('/year-selected/{student_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'year_selected'])->name('year_selected');
-    Route::get('/print/{student_id}/{exam_id}/{year}', [App\Http\Controllers\SupportTeam\MarkController::class, 'print_view'])->name('print_view');
+    Route::get('/print/{student_id}/{exam_id}/{year}', [App\Http\Controllers\SupportTeam\MarkController::class, 'print_view'])->name('print');
+    Route::get('/tabulation/print/{exam_id}/{class_id}/{section_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'print_tabulation'])->name('print_tabulation');
+    Route::put('/comment/{exr_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'comment_update'])->name('comment_update');
+    Route::put('/skills/{skill}/{exr_id}', [App\Http\Controllers\SupportTeam\MarkController::class, 'skills_update'])->name('skills_update');
+    Route::get('/{student_id}/{year}', [App\Http\Controllers\SupportTeam\MarkController::class, 'show'])->name('show');
+});
+
+// Result PIN Routes
+Route::group(['prefix' => 'pins', 'as' => 'pins.', 'middleware' => ['auth']], function () {
+    Route::get('/', [App\Http\Controllers\SupportTeam\PinController::class, 'index'])->name('index');
+    Route::get('/create', [App\Http\Controllers\SupportTeam\PinController::class, 'create'])->name('create');
+    Route::post('/', [App\Http\Controllers\SupportTeam\PinController::class, 'store'])->name('store');
+    Route::get('/enter/{id}', [App\Http\Controllers\SupportTeam\PinController::class, 'enter_pin'])->name('enter');
+    Route::post('/verify/{id}', [App\Http\Controllers\SupportTeam\PinController::class, 'verify'])->name('verify');
+    Route::delete('/{pin_scope}', [App\Http\Controllers\SupportTeam\PinController::class, 'destroy'])->name('destroy');
 });
 
 // Book Routes
@@ -302,6 +320,7 @@ Route::group(['prefix' => 'librarian', 'as' => 'librarian.', 'middleware' => ['a
     // Books Management
     Route::get('/books', [App\Http\Controllers\Librarian\BookController::class, 'index'])->name('books.index');
     Route::get('/books/create', [App\Http\Controllers\Librarian\BookController::class, 'create'])->name('books.create');
+    Route::get('/books/search', [App\Http\Controllers\Librarian\BookController::class, 'search'])->name('books.search');
     Route::post('/books', [App\Http\Controllers\Librarian\BookController::class, 'store'])->name('books.store');
     Route::get('/books/{book}', [App\Http\Controllers\Librarian\BookController::class, 'show'])->name('books.show');
     Route::get('/books/{book}/edit', [App\Http\Controllers\Librarian\BookController::class, 'edit'])->name('books.edit');
@@ -310,7 +329,6 @@ Route::group(['prefix' => 'librarian', 'as' => 'librarian.', 'middleware' => ['a
     Route::get('/books/{book}/issue', [App\Http\Controllers\Librarian\BookController::class, 'issueForm'])->name('books.issue');
     Route::post('/books/{book}/issue', [App\Http\Controllers\Librarian\BookController::class, 'issueBook'])->name('books.issue.store');
     Route::post('/books/{book}/return/{transaction}', [App\Http\Controllers\Librarian\BookController::class, 'returnBook'])->name('books.return');
-    Route::get('/books/search', [App\Http\Controllers\Librarian\BookController::class, 'search'])->name('books.search');
     
     // Transactions Management
     Route::get('/transactions', [App\Http\Controllers\Librarian\TransactionController::class, 'index'])->name('transactions.index');

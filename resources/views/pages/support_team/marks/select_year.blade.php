@@ -10,7 +10,7 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6 offset-md-3">
-                    <form method="post" action="{{ route('marks.year_select', $student_id) }}">
+                    <form method="post" action="{{ route('marks.year_selected', $student_id) }}">
                         @csrf
                         <div class="form-group">
                             <label for="year" class="font-weight-bold col-form-label-lg">Select Exam Year:</label>
