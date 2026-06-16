@@ -295,7 +295,7 @@ class TeacherController extends Controller
 
     public function show($id)
     {
-        $teacher = $this->user->find(Qs::decodeHash($id));
+        $teacher = $this->user->find($id);
         
         if (!$teacher || $teacher->user_type !== 'teacher') {
             return Qs::goWithDanger('teachers.index');
@@ -314,7 +314,7 @@ class TeacherController extends Controller
 
     public function edit($id)
     {
-        $d['teacher'] = $this->user->find(Qs::decodeHash($id));
+        $d['teacher'] = $this->user->find($id);
         
         if (!$d['teacher'] || $d['teacher']->user_type !== 'teacher') {
             return Qs::goWithDanger('teachers.index');
@@ -327,14 +327,14 @@ class TeacherController extends Controller
     {
         $req->validate([
             'name' => 'required|string|max:255',
-            'email' => 'nullable|email|unique:users,email,' . Qs::decodeHash($id),
+            'email' => 'nullable|email|unique:users,email,' . $id,
             'phone' => 'nullable|string|max:20',
             'gender' => 'required|in:Male,Female',
             'address' => 'nullable|string',
             'province' => 'required|string',
             'district' => 'required|string',
             'medical_history' => 'nullable|string',
-            'username' => 'nullable|string|unique:users,username,' . Qs::decodeHash($id),
+            'username' => 'nullable|string|unique:users,username,' . $id,
             'password' => 'nullable|string|min:6',
         ]);
 
@@ -355,21 +355,21 @@ class TeacherController extends Controller
                 $photo = $req->file('photo');
                 $f = Qs::getFileMetaData($photo);
                 $f['name'] = 'photo.' . $f['ext'];
-                $f['path'] = $photo->storeAs(Qs::getUploadPath('teacher').$this->user->find(Qs::decodeHash($id))->code, $f['name']);
+                $f['path'] = $photo->storeAs(Qs::getUploadPath('teacher').$this->user->find($id)->code, $f['name']);
                 $data['photo'] = asset('storage/' . $f['path']);
             } catch (\Exception $e) {
                 \Log::warning('Photo upload failed: ' . $e->getMessage());
             }
         }
 
-        $this->user->update(Qs::decodeHash($id), $data);
+        $this->user->update($id, $data);
 
         return back()->with('flash_success', 'Teacher updated successfully!');
     }
 
     public function destroy($id)
     {
-        $teacher = $this->user->find(Qs::decodeHash($id));
+        $teacher = $this->user->find($id);
         
         if (!$teacher || $teacher->user_type !== 'teacher') {
             return back()->with('flash_danger', 'Teacher not found');
@@ -383,7 +383,7 @@ class TeacherController extends Controller
             return back()->with('flash_danger', 'Cannot delete teacher. They are assigned to ' . ($sectionsCount + $subjectsCount) . ' class(es) or subject(s). Please reassign them first.');
         }
 
-        $this->user->delete(Qs::decodeHash($id));
+        $this->user->delete($id);
         return back()->with('flash_success', 'Teacher deleted successfully!');
     }
 }

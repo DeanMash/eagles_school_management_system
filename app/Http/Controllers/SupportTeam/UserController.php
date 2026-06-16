@@ -182,7 +182,6 @@ class UserController extends Controller
 
     public function edit($id)
     {
-        $id = Qs::decodeHash($id);
         $user = $this->user->find($id);
         
         if (!$user) {
@@ -296,8 +295,6 @@ class UserController extends Controller
 
     public function update(UserRequest $req, $id)
     {
-        $id = Qs::decodeHash($id);
-
         // Redirect if Making Changes to Head of Super Admins
         if(Qs::headSA($id)){
             return Qs::json(__('msg.denied'), FALSE);
@@ -342,7 +339,6 @@ class UserController extends Controller
 
     public function show($user_id)
     {
-        $user_id = Qs::decodeHash($user_id);
         if(!$user_id){return back();}
 
         $data['user'] = $this->user->find($user_id);
@@ -357,8 +353,6 @@ class UserController extends Controller
 
     public function destroy($id)
     {
-        $id = Qs::decodeHash($id);
-
         // Redirect if Making Changes to Head of Super Admins
         if(Qs::headSA($id)){
             return back()->with('pop_error', __('msg.denied'));

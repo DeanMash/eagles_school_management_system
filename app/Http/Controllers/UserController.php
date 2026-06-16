@@ -16,7 +16,7 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        $user = User::findOrFail(Qs::decodeHash($id));
+        $user = User::findOrFail($id);
         
         // Check if current user can view this profile
         if (Auth::id() != $user->id && !Qs::userIsTeamSAT() && !Qs::userIsMyChild($user->id, Auth::id())) {

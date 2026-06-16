@@ -39,11 +39,11 @@ class RouteServiceProvider extends ServiceProvider
         //parent::boot();
 
         Route::bind('id', function($value){
-            return Qs::decodeHash($value);
+            return Qs::decodeHash($value) ?: (ctype_digit((string) $value) ? $value : null);
         });
 
         Route::bind('pr_id', function($value){
-            return Qs::decodeHash($value);
+            return Qs::decodeHash($value) ?: (ctype_digit((string) $value) ? $value : null);
         });
 
         $this->configureRateLimiting();
