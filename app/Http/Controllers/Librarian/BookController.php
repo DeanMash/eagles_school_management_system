@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class BookController extends Controller
 {
@@ -170,51 +171,69 @@ class BookController extends Controller
             'due_date' => 'required|date|after:today'
         ]);
 
-        if (!$book->isAvailable()) {
-            return redirect()->back()
-                ->with('error', 'Book is not available for issue!');
-        }
+        return DB::transaction(function () use ($request, $book) {
+            $book = Book::whereKey($book->id)->lockForUpdate()->firstOrFail();
 
-        BookTransaction::create([
-            'book_id' => $book->id,
-            'student_id' => $request->student_id,
-            'issued_by' => Auth::id(),
-            'issue_date' => now(),
-            'due_date' => $request->due_date,
-            'status' => 'issued',
-            'notes' => $request->notes
-        ]);
+            if (!$book->isAvailable()) {
+                return redirect()->back()
+                    ->with('error', 'Book is not available for issue!');
+            }
 
-        // Update available copies
-        $book->decrement('available_copies');
-        if ($book->available_copies == 0) {
-            $book->update(['status' => 'checked_out']);
-        }
+            BookTransaction::create([
+                'book_id' => $book->id,
+                'student_id' => $request->student_id,
+                'issued_by' => Auth::id(),
+                'issue_date' => now(),
+                'due_date' => $request->due_date,
+                'status' => 'issued',
+                'notes' => $request->notes
+            ]);
 
-        return redirect()->route('librarian.books.index')
-            ->with('success', 'Book issued successfully!');
+            $availableCopies = max(0, $book->available_copies - 1);
+            $book->update([
+                'available_copies' => $availableCopies,
+                'status' => $availableCopies === 0 ? 'checked_out' : 'available',
+            ]);
+
+            return redirect()->route('librarian.books.index')
+                ->with('success', 'Book issued successfully!');
+        });
     }
 
     // Return book
-    public function returnBook(BookTransaction $transaction)
+    public function returnBook(Book $book, BookTransaction $transaction)
     {
-        $transaction->update([
-            'return_date' => now(),
-            'status' => 'returned',
-            'fine_amount' => $transaction->calculateFine(),
-            'notes' => $transaction->notes . "\n\nReturned on: " . now()->format('Y-m-d')
-        ]);
+        return DB::transaction(function () use ($book, $transaction) {
+            $book = Book::whereKey($book->id)->lockForUpdate()->firstOrFail();
+            $transaction = BookTransaction::whereKey($transaction->id)->lockForUpdate()->firstOrFail();
 
-        // Update book copies
-        $book = $transaction->book;
-        $book->increment('available_copies');
-        
-        if ($book->available_copies > 0 && $book->status === 'checked_out') {
-            $book->update(['status' => 'available']);
-        }
+            if ($transaction->book_id !== $book->id) {
+                return redirect()->back()
+                    ->with('error', 'This return record does not belong to the selected book.');
+            }
 
-        return redirect()->back()
-            ->with('success', 'Book returned successfully!');
+            if ($transaction->status !== 'issued') {
+                return redirect()->back()
+                    ->with('error', 'This book transaction has already been closed.');
+            }
+
+            $transaction->update([
+                'return_date' => now(),
+                'status' => 'returned',
+                'fine_amount' => $transaction->calculateFine(),
+                'notes' => $transaction->notes . "\n\nReturned on: " . now()->format('Y-m-d')
+            ]);
+
+            $availableCopies = min($book->copies, $book->available_copies + 1);
+            $bookData = ['available_copies' => $availableCopies];
+            if ($availableCopies > 0 && $book->status === 'checked_out') {
+                $bookData['status'] = 'available';
+            }
+            $book->update($bookData);
+
+            return redirect()->back()
+                ->with('success', 'Book returned successfully!');
+        });
     }
 
     // Search books
