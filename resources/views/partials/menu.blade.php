@@ -123,7 +123,7 @@
                                 <a href="#" class="nav-link {{ in_array(Route::currentRouteName(), ['students.list', 'students.edit', 'students.show']) ? 'active' : '' }}">Student Information</a>
                                 <ul class="nav nav-group-sub">
                                     @foreach(App\Models\MyClass::orderBy('name')->get() as $c)
-                                        <li class="nav-item"><a href="{{ route('students.list', $c->id) }}" class="nav-link ">{{ $c->name }}</a></li>
+                                        <li class="nav-item"><a href="{{ route('students.list_by_class', $c->id) }}" class="nav-link ">{{ $c->name }}</a></li>
                                     @endforeach
                                 </ul>
                             </li>

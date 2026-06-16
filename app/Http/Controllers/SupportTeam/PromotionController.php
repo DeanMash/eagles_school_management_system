@@ -63,17 +63,22 @@ class PromotionController extends Controller
         }
 
         foreach($students as $st){
+            $d = $promote = [];
             $p = 'p-'.$st->id;
             $p = $req->$p;
             if($p === 'P'){ // Promote
                 $d['my_class_id'] = $tc;
                 $d['section_id'] = $ts;
                 $d['session'] = $ny;
+                $d['grad'] = 0;
+                $d['grad_date'] = NULL;
             }
             if($p === 'D'){ // Don't Promote
                 $d['my_class_id'] = $fc;
                 $d['section_id'] = $fs;
                 $d['session'] = $ny;
+                $d['grad'] = 0;
+                $d['grad_date'] = NULL;
             }
             if($p === 'G'){ // Graduated
                 $d['my_class_id'] = $fc;
