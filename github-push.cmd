@@ -11,6 +11,10 @@ echo ✅ Identity set: DeanMash <dchipembe13@gmail.com>
 
 echo.
 echo [2/7] Updating .gitignore...
+echo # Laravel environment files >> .gitignore
+echo .env >> .gitignore
+echo .env.* >> .gitignore
+echo !.env.example >> .gitignore
 echo # Development files >> .gitignore
 echo DEBUG_TIMETABLE.md >> .gitignore
 echo FOUNDATION_CHECK_REPORT.md >> .gitignore
