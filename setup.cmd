@@ -9,14 +9,15 @@ echo Setting Git identity...
 git config --global user.email "dchipembe13@gmail.com"
 git config --global user.name "DeanMash"
 
-REM Step 2: Create .gitignore
-echo Creating .gitignore...
+REM Step 2: Extend .gitignore without removing project-specific rules
+echo Updating .gitignore...
 (
 echo # Laravel Default
 echo /node_modules
 echo /vendor
 echo .env
-echo .env.backup
+echo .env.*
+echo !.env.example
 echo storage/logs/*
 echo storage/framework/sessions/*
 echo storage/framework/views/*
@@ -38,7 +39,7 @@ echo _ide_helper.php
 echo .idea/
 echo composer.phar
 echo php
-) > .gitignore
+) >> .gitignore
 
 REM Step 3: Rename README
 if exist "readme.md" ren readme.md README.md
