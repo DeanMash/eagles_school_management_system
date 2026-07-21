@@ -37,11 +37,13 @@ if exist "readme.md" (
 echo.
 echo [4/7] Adding files to Git...
 git add .
+if errorlevel 1 goto :git_error
 echo ✅ Files added
 
 echo.
 echo [5/7] Creating commit...
 git commit -m "Initial commit: Eagles School Management System by DeanMash"
+if errorlevel 1 goto :git_error
 echo ✅ Commit created
 
 echo.
@@ -49,12 +51,15 @@ echo [6/7] Connecting to GitHub...
 REM Choose repository name:
 set /p REPO_NAME=Enter GitHub repository name (eagles-school-management or eagles_school_management_system): 
 git remote add origin https://github.com/DeanMash/%REPO_NAME%.git
+if errorlevel 1 goto :git_error
 git branch -M main
+if errorlevel 1 goto :git_error
 echo ✅ Connected to GitHub
 
 echo.
 echo [7/7] Pushing to GitHub...
 git push -u origin main
+if errorlevel 1 goto :git_error
 echo ✅ Code pushed to GitHub!
 
 echo.
@@ -63,3 +68,14 @@ echo 🎉 SUCCESS! Repository URL:
 echo https://github.com/DeanMash/%REPO_NAME%
 echo ====================================
 pause
+exit /b 0
+
+:git_error
+echo.
+echo ====================================
+echo ERROR: Git command failed
+echo The workflow was stopped to prevent an unintended push.
+echo Review the Git error above, correct it, and run this script again.
+echo ====================================
+pause
+exit /b 1
