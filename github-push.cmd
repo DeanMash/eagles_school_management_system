@@ -11,6 +11,10 @@ echo ✅ Identity set: DeanMash <dchipembe13@gmail.com>
 
 echo.
 echo [2/7] Updating .gitignore...
+echo # Laravel environment files >> .gitignore
+echo .env >> .gitignore
+echo .env.* >> .gitignore
+echo !.env.example >> .gitignore
 echo # Development files >> .gitignore
 echo DEBUG_TIMETABLE.md >> .gitignore
 echo FOUNDATION_CHECK_REPORT.md >> .gitignore
@@ -37,6 +41,12 @@ if exist "readme.md" (
 echo.
 echo [4/7] Adding files to Git...
 git add .
+git diff --cached --name-only | findstr /R /I /X /C:"\.env" /C:"\.env\..*" | findstr /V /I /X /C:".env.example" >nul
+if not errorlevel 1 (
+    echo ERROR: A private environment file is staged. Nothing was committed or pushed.
+    git diff --cached --name-only | findstr /R /I /X /C:"\.env" /C:"\.env\..*" | findstr /V /I /X /C:".env.example"
+    exit /b 1
+)
 echo ✅ Files added
 
 echo.
