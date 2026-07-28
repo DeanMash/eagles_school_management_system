@@ -328,6 +328,22 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/get-class-subjects/{class_id}', [App\Http\Controllers\AjaxController::class, 'get_class_subjects'])->name('get_class_subjects');
 });
 
+// Super-admin system settings (required by header + super_admin menu)
+Route::middleware(['auth', 'super_admin'])->group(function () {
+    Route::get('/settings', [App\Http\Controllers\SuperAdmin\SettingController::class, 'index'])->name('settings');
+    Route::put('/settings', [App\Http\Controllers\SuperAdmin\SettingController::class, 'update'])->name('settings.update');
+});
+
+// Exam PIN routes (required by super_admin menu + locked marksheets)
+Route::group(['prefix' => 'pins', 'as' => 'pins.', 'middleware' => ['auth']], function () {
+    Route::get('/', [App\Http\Controllers\SupportTeam\PinController::class, 'index'])->name('index');
+    Route::get('/create', [App\Http\Controllers\SupportTeam\PinController::class, 'create'])->name('create');
+    Route::post('/', [App\Http\Controllers\SupportTeam\PinController::class, 'store'])->name('store');
+    Route::get('/enter/{id}', [App\Http\Controllers\SupportTeam\PinController::class, 'enter_pin'])->name('enter');
+    Route::post('/verify/{id}', [App\Http\Controllers\SupportTeam\PinController::class, 'verify'])->name('verify');
+    Route::delete('/{pin_scope}', [App\Http\Controllers\SupportTeam\PinController::class, 'destroy'])->name('destroy');
+});
+
 Route::fallback(function () {
     return view('errors.404');
 });

@@ -14,6 +14,7 @@ class SettingController extends Controller
 
     public function __construct(SettingRepo $setting, MyClassRepo $my_class)
     {
+        $this->middleware('super_admin');
         $this->setting = $setting;
         $this->my_class = $my_class;
     }
