@@ -82,9 +82,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile/edit', [UserController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/update', [UserController::class, 'update'])->name('profile.update');
     Route::get('/my-account', [UserController::class, 'myAccount'])->name('my_account');
-    Route::get('/my-children', function() {
-        return view('parents.my-children');
-    })->name('my_children');
+    Route::get('/my-children', [App\Http\Controllers\MyParent\MyController::class, 'children'])
+        ->middleware('parent')
+        ->name('my_children');
 });
 
 // Users Management Routes (Support Team)

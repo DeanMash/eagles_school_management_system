@@ -8,8 +8,12 @@ use Illuminate\Support\Facades\Auth;
 class MyController extends Controller
 {
     protected $student;
+
     public function __construct(StudentRepo $student)
     {
+        $this->middleware('auth');
+        $this->middleware('parent');
+
         $this->student = $student;
     }
 

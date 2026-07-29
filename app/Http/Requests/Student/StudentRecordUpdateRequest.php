@@ -19,15 +19,16 @@ class StudentRecordUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        $student = $this->route('sr_id');
-        $student = \App\Helpers\Qs::decodeHash($student);
-        $user = \App\Models\StudentRecord::find($student)->user ?? null;
-        
+        // Route param is `{id}` and RouteServiceProvider already hash-decodes it.
+        $student = $this->route('id');
+        $record = \App\Models\StudentRecord::find($student);
+        $userId = $record?->user?->id ?? 0;
+
         return [
             'name' => 'required|string|max:255',
             'gender' => 'required|in:Male,Female',
             'address' => 'required|string|max:255',
-            'email' => 'nullable|email|unique:users,email,' . ($user->id ?? 0),
+            'email' => 'nullable|email|unique:users,email,' . $userId,
             'phone' => 'nullable|string',
             'phone2' => 'nullable|string',
             'dob' => 'nullable|date|before:today',
