@@ -38,12 +38,14 @@ class UserRequest extends FormRequest
             'subject_ids' => 'nullable|array',
             'subject_ids.*' => 'exists:subjects,id',
         ];
+        // Route param is `{id}` and RouteServiceProvider already hash-decodes it.
+        $userId = $this->route('id') ?: 0;
         $update =  [
             'name' => 'required|string|min:6|max:150',
             'gender' => 'required|string',
             'phone' => 'sometimes|nullable|string|min:6|max:20',
             'phone2' => 'sometimes|nullable|string|min:6|max:20',
-            'email' => 'sometimes|nullable|email|max:100|unique:users,email,'.$this->user,
+            'email' => 'sometimes|nullable|email|max:100|unique:users,email,'.$userId,
             'photo' => 'sometimes|nullable|image|mimes:jpeg,gif,png,jpg|max:2048',
             'address' => 'required|string|min:6|max:120',
             'province' => 'nullable|string',
@@ -75,10 +77,6 @@ class UserRequest extends FormRequest
 
             $this->getInputSource()->replace($input);
 
-        }
-
-        if($this->method() === 'PUT'){
-            $this->user = Qs::decodeHash($this->user);
         }
 
         return parent::getValidatorInstance();
