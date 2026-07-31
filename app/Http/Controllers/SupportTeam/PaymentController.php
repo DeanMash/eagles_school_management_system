@@ -14,6 +14,7 @@ use App\Repositories\PaymentRepo;
 use App\Repositories\StudentRepo;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use PDF;
 
@@ -134,24 +135,33 @@ class PaymentController extends Controller
     public function pay_now(Request $req, $pr_id)
     {
         $this->validate($req, [
-            'amt_paid' => 'required|numeric'
+            'amt_paid' => 'required|numeric|gt:0'
         ], [], ['amt_paid' => 'Amount Paid']);
 
-        $pr = $this->pay->findRecord($pr_id);
-        $payment = $this->pay->find($pr->payment_id);
-        $d['amt_paid'] = $amt_p = $pr->amt_paid + $req->amt_paid;
-        $d['balance'] = $bal = $payment->amount - $amt_p;
-        $d['paid'] = $bal < 1 ? 1 : 0;
+        return DB::transaction(function () use ($req, $pr_id) {
+            // Lock the payment record so concurrent pay_now requests cannot
+            // both read the same amt_paid and overwrite each other's write.
+            $pr = $this->pay->findRecordForUpdate($pr_id);
+            $payment = $this->pay->find($pr->payment_id);
 
-        $this->pay->updateRecord($pr_id, $d);
+            $amt_p = ($pr->amt_paid ?? 0) + $req->amt_paid;
+            $bal = $payment->amount - $amt_p;
 
-        $d2['amt_paid'] = $req->amt_paid;
-        $d2['balance'] = $bal;
-        $d2['pr_id'] = $pr_id;
-        $d2['year'] = $this->year;
+            $this->pay->updateRecord($pr_id, [
+                'amt_paid' => $amt_p,
+                'balance' => $bal,
+                'paid' => $bal < 1 ? 1 : 0,
+            ]);
 
-        $this->pay->createReceipt($d2);
-        return Qs::jsonUpdateOk();
+            $this->pay->createReceipt([
+                'amt_paid' => $req->amt_paid,
+                'balance' => $bal,
+                'pr_id' => $pr_id,
+                'year' => $this->year,
+            ]);
+
+            return Qs::jsonUpdateOk();
+        });
     }
 
     public function manage($class_id = NULL)
