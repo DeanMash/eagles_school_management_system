@@ -82,6 +82,11 @@ class PaymentRepo
         return PaymentRecord::findOrFail($id);
     }
 
+    public function findRecordForUpdate($id)
+    {
+        return PaymentRecord::whereKey($id)->lockForUpdate()->firstOrFail();
+    }
+
     public function updateRecord($id, $data)
     {
         return PaymentRecord::find($id)->update($data);
