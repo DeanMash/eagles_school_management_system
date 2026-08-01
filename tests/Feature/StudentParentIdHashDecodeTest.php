@@ -50,8 +50,10 @@ class StudentParentIdHashDecodeTest extends TestCase
 
         $this->assertStringContainsString("'my_parent_id' => 'nullable|exists:users,id'", $create);
         $this->assertStringContainsString("'my_parent_id' => 'nullable|exists:users,id'", $update);
-        $this->assertStringContainsString("Qs::decodeHash(\$input['my_parent_id'])", $create);
-        $this->assertStringContainsString("Qs::decodeHash(\$input['my_parent_id'])", $update);
+        $this->assertStringContainsString('prepareForValidation', $create);
+        $this->assertStringContainsString('prepareForValidation', $update);
+        $this->assertStringContainsString('Qs::decodeHash($this->my_parent_id)', $create);
+        $this->assertStringContainsString('Qs::decodeHash($this->my_parent_id)', $update);
     }
 
     public function test_edit_view_selects_parent_via_my_parent_id()
@@ -69,7 +71,7 @@ class StudentParentIdHashDecodeTest extends TestCase
         $request->setContainer($this->app);
         $request->setRedirector($this->app->make('redirect'));
 
-        $methodRef = new \ReflectionMethod($request, 'getValidatorInstance');
+        $methodRef = new \ReflectionMethod($request, 'prepareForValidation');
         $methodRef->setAccessible(true);
         $methodRef->invoke($request);
 

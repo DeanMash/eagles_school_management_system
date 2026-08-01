@@ -71,14 +71,12 @@ class StudentRecordCreateRequest extends FormRequest
     /**
      * Views submit Hashids-encoded parent IDs; decode before validation/persistence.
      */
-    protected function getValidatorInstance()
+    protected function prepareForValidation()
     {
-        $input = $this->all();
-        $input['my_parent_id'] = !empty($input['my_parent_id'])
-            ? Qs::decodeHash($input['my_parent_id'])
-            : null;
-        $this->getInputSource()->replace($input);
-
-        return parent::getValidatorInstance();
+        $this->merge([
+            'my_parent_id' => !empty($this->my_parent_id)
+                ? Qs::decodeHash($this->my_parent_id)
+                : null,
+        ]);
     }
 }
