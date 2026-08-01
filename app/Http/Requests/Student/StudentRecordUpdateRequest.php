@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Student;
 
+use App\Helpers\Qs;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StudentRecordUpdateRequest extends FormRequest
@@ -20,7 +21,7 @@ class StudentRecordUpdateRequest extends FormRequest
     public function rules(): array
     {
         $student = $this->route('sr_id');
-        $student = \App\Helpers\Qs::decodeHash($student);
+        $student = Qs::decodeHash($student);
         $user = \App\Models\StudentRecord::find($student)->user ?? null;
         
         return [
@@ -43,6 +44,7 @@ class StudentRecordUpdateRequest extends FormRequest
             // Student Data Section
             'my_class_id' => 'required|exists:my_classes,id',
             'section_id' => 'nullable|exists:sections,id',
+            'my_parent_id' => 'nullable|exists:users,id',
             'adm_no' => 'nullable|unique:student_records,adm_no,' . $student . '|regex:/^[A-Z0-9]{4,10}$/',
             'admission_date' => 'nullable|date|before_or_equal:today',
             'year_admitted' => 'nullable|digits:4|min:2000|max:' . date('Y'),
@@ -68,5 +70,17 @@ class StudentRecordUpdateRequest extends FormRequest
             'photo.max' => 'The photo must not be larger than 2MB.',
             'adm_no.regex' => 'Admission number must be 4-10 characters long and contain only uppercase letters and numbers.',
         ];
+    }
+
+    /**
+     * Views submit Hashids-encoded parent IDs; decode before validation/persistence.
+     */
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'my_parent_id' => !empty($this->my_parent_id)
+                ? Qs::decodeHash($this->my_parent_id)
+                : null,
+        ]);
     }
 }

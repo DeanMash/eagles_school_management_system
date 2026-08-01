@@ -155,7 +155,7 @@
                                 <select data-placeholder="Choose..."  name="my_parent_id" id="my_parent_id" class="select-search form-control">
                                     <option  value=""></option>
                                     @foreach($parents as $p)
-                                        <option {{ (Qs::hash($sr->parent_id) == Qs::hash($p->id)) ? 'selected' : '' }} value="{{ Qs::hash($p->id) }}">{{ $p->name }}</option>
+                                        <option {{ ((string) $sr->my_parent_id === (string) $p->id) ? 'selected' : '' }} value="{{ Qs::hash($p->id) }}">{{ $p->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
