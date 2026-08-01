@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Student;
 
+use App\Helpers\Qs;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StudentRecordCreateRequest extends FormRequest
@@ -39,6 +40,7 @@ class StudentRecordCreateRequest extends FormRequest
             // Student Data Section
             'my_class_id' => 'required|exists:my_classes,id',
             'section_id' => 'nullable|exists:sections,id',
+            'my_parent_id' => 'nullable|exists:users,id',
             'adm_no' => 'nullable|unique:student_records,adm_no|regex:/^[A-Z0-9]{4,10}$/',
             'admission_date' => 'required|date|before_or_equal:today',
             'year_admitted' => 'nullable|digits:4|min:2000|max:' . date('Y'),
@@ -64,5 +66,19 @@ class StudentRecordCreateRequest extends FormRequest
             'photo.max' => 'The photo must not be larger than 2MB.',
             'adm_no.regex' => 'Admission number must be 4-10 characters long and contain only uppercase letters and numbers.',
         ];
+    }
+
+    /**
+     * Views submit Hashids-encoded parent IDs; decode before validation/persistence.
+     */
+    protected function getValidatorInstance()
+    {
+        $input = $this->all();
+        $input['my_parent_id'] = !empty($input['my_parent_id'])
+            ? Qs::decodeHash($input['my_parent_id'])
+            : null;
+        $this->getInputSource()->replace($input);
+
+        return parent::getValidatorInstance();
     }
 }
