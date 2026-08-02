@@ -17,6 +17,7 @@ class Admin
      */
     public function handle($request, Closure $next)
     {
-        return (Auth::check() && Qs::userIsAdmin()) ? $next($request) : redirect()->route('login');
+        // Super admins are routed to admin.dashboard by HomeController; allow both roles.
+        return (Auth::check() && Qs::userIsTeamSA()) ? $next($request) : redirect()->route('login');
     }
 }
