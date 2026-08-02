@@ -215,6 +215,13 @@ class UserController extends Controller
             if (!$userTypeModel) {
                 return back()->withInput()->with('flash_danger', 'Invalid user type selected.');
             }
+
+            // Match the index UI filter: admins may only create types with level > 2.
+            // Without this check, a forged user_type hash lets an admin create admin/super_admin.
+            if (Qs::userIsAdmin() && (int) $userTypeModel->level <= 2) {
+                return back()->withInput()->with('flash_danger', __('msg.denied'));
+            }
+
             $user_type = $userTypeModel->title;
 
             $data = $req->except(array_merge(Qs::getStaffRecord(), ['section_id', 'subject_ids']));
