@@ -245,7 +245,17 @@ class PaymentController extends Controller
 
     public function reset_record($id)
     {
-        $pr['amt_paid'] = $pr['paid'] = $pr['balance'] = 0;
+        $record = $this->pay->findRecord($id);
+        $payment = $this->pay->find($record->payment_id);
+
+        // Wipe payments/receipts but restore outstanding balance to the full
+        // invoice amount. Setting balance=0 made manage()'s `$pr->balance ?? …`
+        // treat debt as cleared (0 is not null) and show students as "Cleared".
+        $pr = [
+            'amt_paid' => 0,
+            'paid' => 0,
+            'balance' => $payment->amount,
+        ];
         $this->pay->updateRecord($id, $pr);
         $this->pay->deleteReceipts(['pr_id' => $id]);
 
