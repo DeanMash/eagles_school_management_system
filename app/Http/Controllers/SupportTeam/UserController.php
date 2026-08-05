@@ -309,7 +309,13 @@ class UserController extends Controller
         $user_is_staff = in_array($user_type, Qs::getStaff());
         $user_is_teamSA = in_array($user_type, Qs::getTeamSA());
 
-        $data = $req->except(Qs::getStaffRecord());
+        // Allow-list profile fields only. Do not forward the full request:
+        // User::$fillable includes credentials/identity attrs that must stay
+        // out of the teamSA edit path (reset_pass remains super_admin-only).
+        $data = $req->only([
+            'name', 'email', 'phone', 'phone2', 'gender', 'address',
+            'province', 'district', 'medical_history', 'nal_id',
+        ]);
         $data['name'] = ucwords($req->name);
         $data['user_type'] = $user_type;
 
