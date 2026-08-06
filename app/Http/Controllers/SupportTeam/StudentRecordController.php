@@ -345,7 +345,11 @@ class StudentRecordController extends Controller
         $this->student->updateRecord($sr_id, $studentData); // Update St Rec
 
         /*** If Class/Section is Changed in Same Year, Delete Marks/ExamRecord of Previous Class/Section ****/
-        Mk::deleteOldRecord($sr->user->id, $studentData['my_class_id']);
+        Mk::deleteOldRecord(
+            $sr->user->id,
+            $studentData['my_class_id'],
+            $studentData['section_id'] ?? null
+        );
 
         return redirect()->route('students.show', Qs::hash($sr_id))->with('flash_success', 'Student updated successfully!');
     }

@@ -136,20 +136,31 @@ class Mk extends Qs
      * If Class/Section is Changed in Same Year,
      * Delete Marks/ExamRecord of Previous Class/Section
      *
+     * Same-class section transfers must clear prior section rows: mark totals
+     * (getExamTotalTerm / getSubTotalTerm) aggregate by class+year without
+     * section_id, so leftover section rows double-count after re-entry.
+     *
      * @param int $st_id
      * @param int $class_id
+     * @param int|null $section_id
      * @return bool
      * @static
      */
-    public static function deleteOldRecord($st_id, $class_id)
+    public static function deleteOldRecord($st_id, $class_id, $section_id = null)
     {
         $d = ['student_id' => $st_id, 'year' => self::getCurrentSession()];
 
-        $marks = Mark::where('my_class_id', '<>', $class_id)->where($d);
-        if($marks->get()->count() > 0){
-            $exr = ExamRecord::where('my_class_id', '<>', $class_id)->where($d);
+        $mismatch = function ($q) use ($class_id, $section_id) {
+            $q->where('my_class_id', '<>', $class_id);
+            if ($section_id !== null && $section_id !== '') {
+                $q->orWhere('section_id', '<>', $section_id);
+            }
+        };
+
+        $marks = Mark::where($d)->where($mismatch);
+        if ($marks->exists()) {
+            ExamRecord::where($d)->where($mismatch)->delete();
             $marks->delete();
-            $exr->delete();
         }
         return true;
     }
