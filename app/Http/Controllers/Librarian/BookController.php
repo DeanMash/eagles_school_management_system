@@ -50,9 +50,15 @@ class BookController extends Controller
             'book_cover' => 'nullable|image|max:2048'
         ]);
 
-        $data = $request->all();
-        $data['available_copies'] = $request->copies;
+        $copies = (int) $request->copies;
+        $data = $request->only([
+            'isbn', 'title', 'author', 'publisher', 'year_published',
+            'category', 'copies', 'shelf_number', 'description',
+        ]);
+        $data['copies'] = $copies;
+        $data['available_copies'] = $copies;
         $data['name'] = $request->title; // Set name from title
+        $data['status'] = 'available';
 
         // Handle book cover upload
         if ($request->hasFile('book_cover')) {
@@ -91,16 +97,38 @@ class BookController extends Controller
             'copies' => 'required|integer|min:1|max:1000',
             'shelf_number' => 'nullable|string|max:50',
             'description' => 'nullable|string',
+            'status' => 'nullable|in:available,checked_out,reserved,lost,damaged',
             'book_cover' => 'nullable|image|max:2048'
         ]);
 
-        $data = $request->all();
+        $outstanding = $book->transactions()->where('status', 'issued')->count();
+        $copies = (int) $request->copies;
+
+        // Never allow total copies below books still out — that corrupts inventory
+        // (available_copies would go to 0 while more copies remain issued).
+        if ($copies < $outstanding) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', "Cannot set copies to {$copies}: {$outstanding} copy(ies) are still issued.");
+        }
+
+        // Allow-list only editable fields. available_copies is derived from
+        // outstanding loans so forged request values cannot inflate stock.
+        $data = $request->only([
+            'isbn', 'title', 'author', 'publisher', 'year_published',
+            'category', 'copies', 'shelf_number', 'description', 'status',
+        ]);
         $data['name'] = $request->title; // Set name from title
-        
-        // Update available copies if total copies changed
-        if ($request->copies != $book->copies) {
-            $difference = $request->copies - $book->copies;
-            $data['available_copies'] = max(0, $book->available_copies + $difference);
+        $data['copies'] = $copies;
+        $data['available_copies'] = $copies - $outstanding;
+
+        // Keep stock status consistent with availability. Leaving status at
+        // checked_out after adding copies made isAvailable() permanently false.
+        $requestedStatus = $request->input('status', $book->status);
+        if (in_array($requestedStatus, ['available', 'checked_out'], true)) {
+            $data['status'] = $data['available_copies'] > 0 ? 'available' : 'checked_out';
+        } else {
+            $data['status'] = $requestedStatus;
         }
 
         // Handle book cover upload
