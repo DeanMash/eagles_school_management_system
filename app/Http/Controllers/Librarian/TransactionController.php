@@ -119,14 +119,42 @@ class TransactionController extends Controller
     // Mark as lost
     public function markAsLost(BookTransaction $transaction)
     {
-        $transaction->update([
-            'status' => 'lost',
-            'fine_amount' => 500, // Fixed lost book fine
-            'notes' => $transaction->notes . "\n\nMarked as lost on: " . now()->format('Y-m-d')
-        ]);
-        
-        return redirect()->back()
-            ->with('success', 'Book marked as lost. Fine of $500 applied.');
+        return DB::transaction(function () use ($transaction) {
+            $transaction = BookTransaction::whereKey($transaction->id)->lockForUpdate()->firstOrFail();
+
+            // Only an issued loan can become lost; otherwise copies would be
+            // decremented again and permanently erase inventory.
+            if ($transaction->status !== 'issued') {
+                return redirect()->back()
+                    ->with('error', 'Only issued books can be marked as lost.');
+            }
+
+            $book = Book::whereKey($transaction->book_id)->lockForUpdate()->firstOrFail();
+
+            $transaction->update([
+                'status' => 'lost',
+                'fine_amount' => 500, // Fixed lost book fine
+                'notes' => $transaction->notes . "\n\nMarked as lost on: " . now()->format('Y-m-d')
+            ]);
+
+            // The issued copy was already removed from available_copies at issue
+            // time. Permanently reduce total copies so stock cannot be re-issued.
+            $copies = max(0, $book->copies - 1);
+            $available = min($book->available_copies, $copies);
+            $bookData = [
+                'copies' => $copies,
+                'available_copies' => $available,
+            ];
+            if ($available > 0 && $book->status === 'checked_out') {
+                $bookData['status'] = 'available';
+            } elseif ($available === 0 && $book->status === 'available') {
+                $bookData['status'] = 'checked_out';
+            }
+            $book->update($bookData);
+
+            return redirect()->back()
+                ->with('success', 'Book marked as lost. Fine of $500 applied.');
+        });
     }
 
     // Pay fine
