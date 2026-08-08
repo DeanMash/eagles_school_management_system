@@ -7,6 +7,7 @@ use App\Helpers\Pay;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Payment\PaymentCreate;
 use App\Http\Requests\Payment\PaymentUpdate;
+use App\Models\PaymentRecord;
 use App\Models\Receipt;
 use App\Models\Setting;
 use App\Repositories\MyClassRepo;
@@ -230,7 +231,10 @@ class PaymentController extends Controller
 
     public function update(PaymentUpdate $req, $id)
     {
-        $data = $req->all();
+        // Only title/description are editable in the UI. Never mass-assign
+        // amount/year/my_class_id/ref_no — forged amount leaves payment_records
+        // balances stale and can mark debt as cleared on the next pay_now.
+        $data = $req->only(['title', 'description']);
         $this->pay->update($id, $data);
 
         return Qs::jsonUpdateOk();
@@ -238,7 +242,18 @@ class PaymentController extends Controller
 
     public function destroy($id)
     {
-        $this->pay->find($id)->delete();
+        $payment = $this->pay->find($id);
+        if (!$payment) {
+            return Qs::goWithDanger('payments.index');
+        }
+
+        // payment_records / receipts FK ON DELETE CASCADE — refuse while any
+        // student fee rows exist so deleting a fee cannot erase payment history.
+        if (PaymentRecord::where('payment_id', $payment->id)->exists()) {
+            return back()->with('flash_danger', 'Cannot delete a payment that has student fee records. Reset or clear student payments first.');
+        }
+
+        $payment->delete();
 
         return Qs::deleteOk('payments.index');
     }
