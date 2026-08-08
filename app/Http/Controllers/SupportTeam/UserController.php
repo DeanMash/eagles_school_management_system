@@ -347,8 +347,12 @@ class UserController extends Controller
 
         $data['user'] = $this->user->find($user_id);
 
-        /* Prevent Other Students from viewing Profile of others*/
-        if(Auth::user()->id != $user_id && !Qs::userIsTeamSAT() && !Qs::userIsMyChild(Auth::user()->id, $user_id)){
+        /* Prevent Other Students from viewing Profile of others.
+         * userIsMyChild($student_id, $parent_id) — args were previously swapped,
+         * which let a student open their parent's /users/{id} profile (and see
+         * every sibling listed there) while blocking the parent from viewing the child.
+         */
+        if(Auth::user()->id != $user_id && !Qs::userIsTeamSAT() && !Qs::userIsMyChild($user_id, Auth::user()->id)){
             return redirect(route('dashboard'))->with('pop_error', __('msg.denied'));
         }
 
