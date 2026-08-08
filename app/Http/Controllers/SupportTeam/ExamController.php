@@ -5,6 +5,9 @@ namespace App\Http\Controllers\SupportTeam;
 use App\Helpers\Qs;
 use App\Http\Requests\Exam\ExamCreate;
 use App\Http\Requests\Exam\ExamUpdate;
+use App\Models\ExamRecord;
+use App\Models\Mark;
+use App\Models\TimeTableRecord;
 use App\Repositories\ExamRepo;
 use App\Http\Controllers\Controller;
 
@@ -50,6 +53,19 @@ class ExamController extends Controller
 
     public function destroy($id)
     {
+        // marks / exam_records / exam time_table_records FK ON DELETE CASCADE —
+        // refuse while related rows exist so deleting an exam cannot wipe
+        // school-wide results or exam schedules.
+        if (Mark::where('exam_id', $id)->exists()) {
+            return back()->with('flash_danger', 'Cannot delete an exam that has marks. Clear marks first.');
+        }
+        if (ExamRecord::where('exam_id', $id)->exists()) {
+            return back()->with('flash_danger', 'Cannot delete an exam that has exam records. Clear exam records first.');
+        }
+        if (TimeTableRecord::where('exam_id', $id)->exists()) {
+            return back()->with('flash_danger', 'Cannot delete an exam that has exam timetables. Remove exam timetables first.');
+        }
+
         $this->exam->delete($id);
         return back()->with('flash_success', __('msg.del_ok'));
     }
