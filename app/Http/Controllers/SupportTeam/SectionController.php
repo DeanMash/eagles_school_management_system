@@ -5,6 +5,8 @@ namespace App\Http\Controllers\SupportTeam;
 use App\Helpers\Qs;
 use App\Http\Requests\Section\SectionCreate;
 use App\Http\Requests\Section\SectionUpdate;
+use App\Models\Mark;
+use App\Models\StudentRecord;
 use App\Repositories\MyClassRepo;
 use App\Http\Controllers\Controller;
 use App\Repositories\UserRepo;
@@ -59,6 +61,15 @@ class SectionController extends Controller
     {
         if($this->my_class->isActiveSection($id)){
             return back()->with('pop_warning', 'Every class must have a default section, You Cannot Delete It');
+        }
+
+        // student_records / marks FK ON DELETE CASCADE — refuse while enrolled
+        // so deleting a non-default section cannot wipe students and their marks.
+        if (StudentRecord::where('section_id', $id)->exists()) {
+            return back()->with('pop_warning', 'Cannot delete a section that has student records. Reassign students first.');
+        }
+        if (Mark::where('section_id', $id)->exists()) {
+            return back()->with('pop_warning', 'Cannot delete a section that has exam marks. Clear marks first.');
         }
 
         $this->my_class->deleteSection($id);
