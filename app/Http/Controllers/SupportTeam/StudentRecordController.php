@@ -6,6 +6,7 @@ use App\Helpers\Qs;
 use App\Helpers\Mk;
 use App\Http\Requests\Student\StudentRecordCreateRequest;
 use App\Http\Requests\Student\StudentRecordUpdateRequest;
+use App\Models\BookTransaction;
 use App\Repositories\LocationRepo;
 use App\Repositories\MyClassRepo;
 use App\Repositories\StudentRepo;
@@ -356,6 +357,13 @@ class StudentRecordController extends Controller
         if(!$st_id){return Qs::goWithDanger();}
 
         $sr = $this->student->getRecord(['user_id' => $st_id])->first();
+
+        // book_transactions.student_id FK ON DELETE CASCADE — refuse while outstanding
+        // loans exist so student delete cannot leave books.available_copies unrestored.
+        if (BookTransaction::where('status', 'issued')->where('student_id', $st_id)->exists()) {
+            return back()->with('pop_warning', 'Cannot delete a student with outstanding library loans. Return the books first.');
+        }
+
         $path = Qs::getUploadPath('student').$sr->user->code;
         Storage::exists($path) ? Storage::deleteDirectory($path) : false;
         $this->user->delete($sr->user->id);
