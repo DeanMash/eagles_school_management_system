@@ -4,6 +4,7 @@ namespace App\Http\Controllers\SupportTeam;
 
 use App\Helpers\Qs;
 use App\Http\Requests\UserRequest;
+use App\Models\BookTransaction;
 use App\Repositories\LocationRepo;
 use App\Repositories\MyClassRepo;
 use App\Repositories\UserRepo;
@@ -368,6 +369,16 @@ class UserController extends Controller
 
         if($user->user_type == 'teacher' && $this->userTeachesSubject($user)) {
             return back()->with('pop_error', __('msg.del_teacher'));
+        }
+
+        // book_transactions.student_id / issued_by FK ON DELETE CASCADE — refuse while
+        // outstanding loans exist so user delete cannot wipe other students' loans or
+        // leave books.available_copies unrestored.
+        if (BookTransaction::where('status', 'issued')
+            ->where(function ($q) use ($id) {
+                $q->where('student_id', $id)->orWhere('issued_by', $id);
+            })->exists()) {
+            return back()->with('pop_warning', 'Cannot delete a user with outstanding library loans (as borrower or issuer). Return or resolve the loans first.');
         }
 
         $path = Qs::getUploadPath($user->user_type).$user->code;
