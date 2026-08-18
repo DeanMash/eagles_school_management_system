@@ -64,6 +64,15 @@ class User extends Authenticatable
         return $this->hasOne(StudentRecord::class);
     }
 
+    /**
+     * CamelCase alias used by librarian issue forms, Event scopes, and whereHas().
+     * Laravel does not map studentRecord → student_record automatically.
+     */
+    public function studentRecord()
+    {
+        return $this->hasOne(StudentRecord::class);
+    }
+
     public function lga()
     {
         return $this->belongsTo(Lga::class);
