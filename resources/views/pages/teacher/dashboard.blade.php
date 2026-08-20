@@ -98,8 +98,8 @@
                                             @foreach($today_timetable as $class)
                                                 @php
                                                     $timeParts = explode(' - ', $class['time']);
-                                                    $startTime = isset($timeParts[0]) ? Carbon::parse($timeParts[0]) : null;
-                                                    $endTime = isset($timeParts[1]) ? Carbon::parse($timeParts[1]) : null;
+                                                    $startTime = isset($timeParts[0]) ? \Carbon\Carbon::parse($timeParts[0]) : null;
+                                                    $endTime = isset($timeParts[1]) ? \Carbon\Carbon::parse($timeParts[1]) : null;
                                                     
                                                     $status = 'upcoming';
                                                     $badgeClass = 'badge-warning';
