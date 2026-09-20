@@ -204,15 +204,17 @@ class MarkController extends Controller
         {
             $all_st_ids[] = $mk->student_id;
 
-                $d['t1'] = $t1 = $mks['t1_'.$mk->id];
-                $d['t2'] = $t2 = $mks['t2_'.$mk->id];
-                $d['tca'] = $tca = $t1 + $t2;
-                $d['exm'] = $exm = $mks['exm_'.$mk->id];
+                // Empty CA/exam inputs become null (ConvertEmptyStringsToNull). PHP 8.1+
+                // TypeErrors on null+null, which is the default for newly created mark rows.
+                $d['t1'] = $t1 = $mks['t1_'.$mk->id] ?? null;
+                $d['t2'] = $t2 = $mks['t2_'.$mk->id] ?? null;
+                $d['exm'] = $exm = $mks['exm_'.$mk->id] ?? null;
+                $d['tca'] = $tca = (int) $t1 + (int) $t2;
 
 
             /** SubTotal Grade, Remark, Cum, CumAvg**/
 
-            $d['tex'.$exam->term] = $total = $tca + $exm;
+            $d['tex'.$exam->term] = $total = $tca + (int) $exm;
 
             if($total > 100){
                 $d['tex'.$exam->term] = $d['t1'] = $d['t2'] = $d['t3'] = $d['t4'] = $d['tca'] = $d['exm'] = NULL;
