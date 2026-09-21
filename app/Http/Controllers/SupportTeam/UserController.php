@@ -307,18 +307,14 @@ class UserController extends Controller
 
         $user_type = $user->user_type;
         $user_is_staff = in_array($user_type, Qs::getStaff());
-        $user_is_teamSA = in_array($user_type, Qs::getTeamSA());
 
         $data = $req->except(Qs::getStaffRecord());
         $data['name'] = ucwords($req->name);
         $data['user_type'] = $user_type;
-
-        if($user_is_staff && !$user_is_teamSA){
-            $data['username'] = Qs::getAppCode().'/STAFF/'.date('Y/m', strtotime($req->emp_date)).'/'.mt_rand(1000, 9999);
-        }
-        else {
-            $data['username'] = $user->username;
-        }
+        // Never rotate login identity on profile save. Regenerating
+        // CODE/STAFF/{Ym}/{rand} here locked teachers, accountants, and
+        // librarians out after a routine Users → Edit.
+        $data['username'] = $user->username;
 
         if($req->hasFile('photo')) {
             $photo = $req->file('photo');
@@ -333,7 +329,6 @@ class UserController extends Controller
         /* UPDATE STAFF RECORD */
         if($user_is_staff){
             $d2 = $req->only(Qs::getStaffRecord());
-            $d2['code'] = $data['username'];
             $this->user->updateStaffRecord(['user_id' => $id], $d2);
         }
 
