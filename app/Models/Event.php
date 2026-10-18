@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Clock;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -284,14 +285,18 @@ class Event extends Model
     // Format time range
     public function getTimeRangeAttribute()
     {
-        if ($this->start_time && $this->end_time) {
-            return date('h:i A', strtotime($this->start_time)) . ' - ' . 
-                   date('h:i A', strtotime($this->end_time));
-        } elseif ($this->start_time) {
-            return 'Starts at ' . date('h:i A', strtotime($this->start_time));
-        } else {
-            return 'All Day';
+        $start = Clock::timeLabel($this->start_time);
+        $end = Clock::timeLabel($this->end_time);
+
+        if ($start && $end) {
+            return $start . ' - ' . $end;
         }
+
+        if ($start) {
+            return 'Starts at ' . $start;
+        }
+
+        return 'All Day';
     }
 
     /**

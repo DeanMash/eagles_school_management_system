@@ -110,7 +110,7 @@
             <tbody>
             @foreach($receipts as $r)
                 <tr>
-                    <td>{{ date('D\, j F\, Y', strtotime($r->created_at)) }}</td>
+                    <td>{{ \App\Support\Clock::dateLabel($r->created_at) }}</td>
                     <td>{{ $r->amt_paid }}</td>
                     <td>{{ $r->balance }}</td>
                 </tr>

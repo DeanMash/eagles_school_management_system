@@ -229,7 +229,7 @@
                                                                         {{ $event->event_date->format('M j, Y (D)') }}
                                                                         @if($event->start_time)
                                                                             <i class="far fa-clock ms-2"></i> 
-                                                                            {{ date('h:i A', strtotime($event->start_time)) }}
+                                                                            {{ \App\Support\Clock::timeLabel($event->start_time) }}
                                                                         @endif
                                                                         @if($daysDiff == 0)
                                                                             <span class="badge badge-info ml-2">Today</span>
