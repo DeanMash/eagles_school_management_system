@@ -7,6 +7,7 @@ use App\Helpers\Qs;
 use App\Repositories\MyClassRepo;
 use App\Repositories\TimeTableRepo;
 use App\Models\Event;
+use App\Support\Clock;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -124,7 +125,7 @@ class ExportController extends Controller
         foreach ($todayEvents as $event) {
             fputcsv($output, [
                 $event->title,
-                $event->start_time ? date('h:i A', strtotime($event->start_time)) : 'N/A',
+                Clock::timeLabel($event->start_time) ?? 'N/A',
                 $event->venue ?? 'N/A',
                 ucfirst($event->event_type)
             ]);
@@ -138,7 +139,7 @@ class ExportController extends Controller
             fputcsv($output, [
                 $event->title,
                 $event->event_date->format('M j, Y'),
-                $event->start_time ? date('h:i A', strtotime($event->start_time)) : 'N/A',
+                Clock::timeLabel($event->start_time) ?? 'N/A',
                 $event->venue ?? 'N/A',
                 ucfirst($event->event_type)
             ]);
